@@ -32,5 +32,20 @@ export const api = {
     });
     if (!res.ok) throw new Error('Failed to fetch ' + endpoint);
     return res.json();
+  },
+
+  async getAnalytics(endpoint, token, queryParams = {}) {
+    const url = new URL(BASE_URL + '/analytics/' + endpoint);
+    Object.keys(queryParams).forEach(key => {
+      if (queryParams[key] !== undefined && queryParams[key] !== null) {
+        url.searchParams.append(key, queryParams[key]);
+      }
+    });
+    
+    const res = await fetch(url.toString(), {
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    if (!res.ok) throw new Error('Failed to fetch analytics: ' + endpoint);
+    return res.json();
   }
 };

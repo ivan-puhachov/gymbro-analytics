@@ -22,14 +22,15 @@ export default function DashboardScreen() {
     async function loadData() {
       const token = localStorage.getItem('admin_token');
       try {
-        const [dau, onboarding, aiHealth, hourly, engagement] = await Promise.all([
+        const [dau, onboarding, aiHealth, hourly, engagement, eventsBreakdown] = await Promise.all([
           api.getReport('daily-active-users', token),
           api.getReport('onboarding', token),
           api.getReport('ai-health', token),
           api.getReport('hourly-activity', token),
           api.getReport('engagement', token),
+          api.getAnalytics('events/breakdown', token),
         ]);
-        setData({ dau, onboarding, aiHealth, hourly, engagement });
+        setData({ dau, onboarding, aiHealth, hourly, engagement, eventsBreakdown });
       } catch (err) {
         console.error(err);
         if (err.message.includes('401') || err.message.includes('403')) {
@@ -70,6 +71,7 @@ export default function DashboardScreen() {
   }).reverse();
 
   const processedDau = data.dau.map(d => ({ ...d, dayStr: d.day ? d.day.split(' ')[0] : 'Unknown' })).reverse();
+  const eventsBreakdownData = data.eventsBreakdown?.breakdown || [];
 
   return (
     <div className="min-h-screen bg-gray-900 p-6">
@@ -163,6 +165,24 @@ export default function DashboardScreen() {
               <Line type="monotone" dataKey="provider_failures" stroke="#F59E0B" strokeWidth={2} name="Provider Errors" />
             </LineChart>
           </ResponsiveContainer>
+        </ChartCard>
+
+        <ChartCard title="Telemetry Event Breakdown">
+          {eventsBreakdownData.length > 0 ? (
+            <ResponsiveContainer>
+              <BarChart data={eventsBreakdownData} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={true} vertical={false} />
+                <XAxis type="number" stroke="#9CA3AF" />
+                <YAxis dataKey="event_type" type="category" stroke="#9CA3AF" width={110} fontSize={11} />
+                <Tooltip contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                <Bar dataKey="count" fill="#8B5CF6" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-full items-center justify-center text-gray-500">
+              No telemetry events recorded yet.
+            </div>
+          )}
         </ChartCard>
       </div>
     </div>
