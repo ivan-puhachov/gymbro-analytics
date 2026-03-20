@@ -33,7 +33,7 @@ export default function DashboardScreen() {
       try {
         const queryParams = { start: startDate, end: endDate, granularity };
 
-        const [dau, onboarding, aiHealth, hourly, engagement, eventsBreakdown, ageGroup, segment, timeRange] = await Promise.all([
+        const promises = [
           api.getReport('daily-active-users', token),
           api.getReport('onboarding', token),
           api.getReport('ai-health', token),
@@ -42,15 +42,38 @@ export default function DashboardScreen() {
           api.getAnalytics('events/breakdown', token, queryParams),
           api.getAnalytics('by-age-group', token),
           api.getAnalytics('by-segment', token),
-          api.getAnalytics('by-time-range', token, queryParams).catch(() => null),
-        ]);
-        setData({ dau, onboarding, aiHealth, hourly, engagement, eventsBreakdown, ageGroup, segment, timeRange });
-      } catch (err) {
-        console.error(err);
-        if (err.message.includes('401') || err.message.includes('403')) {
+          api.getAnalytics('by-time-range', token, queryParams),
+        ];
+
+        const results = await Promise.allSettled(promises);
+
+        // Check for auth errors across all rejected promises
+        const hasAuthError = results.some(r => 
+          r.status === 'rejected' && 
+          (r.reason?.message?.includes('401') || r.reason?.message?.includes('403'))
+        );
+
+        if (hasAuthError) {
           localStorage.removeItem('admin_token');
           navigate('/login');
+          return;
         }
+
+        const safeData = (result, defaultVal) => result.status === 'fulfilled' ? result.value : defaultVal;
+
+        setData({
+          dau: safeData(results[0], []),
+          onboarding: safeData(results[1], {}),
+          aiHealth: safeData(results[2], []),
+          hourly: safeData(results[3], []),
+          engagement: safeData(results[4], []),
+          eventsBreakdown: safeData(results[5], { breakdown: [] }),
+          ageGroup: safeData(results[6], []),
+          segment: safeData(results[7], []),
+          timeRange: safeData(results[8], []),
+        });
+      } catch (err) {
+        console.error("Unexpected error in loadData:", err);
       } finally {
         setLoading(false);
       }
@@ -67,24 +90,24 @@ export default function DashboardScreen() {
   if (!data) return <div className="flex h-screen items-center justify-center bg-gray-900 text-white">Failed to load reports.</div>;
 
   const funnelData = [
-    { stage: 'App Installed', count: data.onboarding.app_started_users || 0 },
-    { stage: 'Registered', count: data.onboarding.register_success_users || 0 },
-    { stage: 'Onboarding', count: data.onboarding.onboarding_started_users || 0 },
-    { stage: 'Created Pet', count: data.onboarding.pet_created_users || 0 },
+    { stage: 'App Installed', count: data.onboarding?.app_started_users || 0 },
+    { stage: 'Registered', count: data.onboarding?.register_success_users || 0 },
+    { stage: 'Onboarding', count: data.onboarding?.onboarding_started_users || 0 },
+    { stage: 'Created Pet', count: data.onboarding?.pet_created_users || 0 },
   ];
 
-  const processedAiHealth = data.aiHealth.map(d => ({
+  const processedAiHealth = (data.aiHealth || []).map(d => ({
     ...d,
     dayStr: d.day ? d.day.split(' ')[0] : 'Unknown'
   })).reverse();
 
-  const processedHourly = data.hourly.map(d => {
+  const processedHourly = (data.hourly || []).map(d => {
     let raw = d.hour_bucket ? d.hour_bucket : 'Unknown';
     let shortHour = raw.length > 11 ? raw.substring(11,16) : raw;
     return { ...d, shortHour };
   }).reverse();
 
-  const processedDau = data.dau.map(d => ({ ...d, dayStr: d.day ? d.day.split(' ')[0] : 'Unknown' })).reverse();
+  const processedDau = (data.dau || []).map(d => ({ ...d, dayStr: d.day ? d.day.split(' ')[0] : 'Unknown' })).reverse();
   const eventsBreakdownData = data.eventsBreakdown?.breakdown || [];
 
   const ageGroupData = data.ageGroup?.map(d => ({ ...d, age_group: d.age_group || 'Unknown' })) || [];
@@ -133,28 +156,28 @@ export default function DashboardScreen() {
           <Activity className="text-blue-400 mr-4" size={32} />
           <div>
             <p className="text-gray-400">Total Engagements</p>
-            <p className="text-2xl font-bold text-white">{data.engagement.reduce((sum, e) => sum + parseInt(e.meals_events_count) + parseInt(e.training_events_count), 0)}</p>
+            <p className="text-2xl font-bold text-white">{(data.engagement || []).reduce((sum, e) => sum + parseInt(e.meals_events_count || 0) + parseInt(e.training_events_count || 0), 0)}</p>
           </div>
         </div>
         <div className="bg-gray-800 p-6 rounded-xl flex items-center shadow-lg border border-gray-700">
           <Users className="text-emerald-400 mr-4" size={32} />
           <div>
             <p className="text-gray-400">Onboarded Users</p>
-            <p className="text-2xl font-bold text-white">{data.onboarding.pet_created_users || 0}</p>
+            <p className="text-2xl font-bold text-white">{data.onboarding?.pet_created_users || 0}</p>
           </div>
         </div>
         <div className="bg-gray-800 p-6 rounded-xl flex items-center shadow-lg border border-gray-700">
           <Database className="text-purple-400 mr-4" size={32} />
           <div>
             <p className="text-gray-400">Today DAU</p>
-            <p className="text-2xl font-bold text-white">{data.dau.length > 0 ? data.dau[0].active_users_count : 0}</p>
+            <p className="text-2xl font-bold text-white">{data.dau?.length > 0 ? data.dau[0].active_users_count : 0}</p>
           </div>
         </div>
         <div className="bg-gray-800 p-6 rounded-xl flex items-center shadow-lg border border-gray-700">
           <ShieldAlert className="text-red-400 mr-4" size={32} />
           <div>
             <p className="text-gray-400">Recent API Errors</p>
-            <p className="text-2xl font-bold text-white">{data.aiHealth.length > 0 ? data.aiHealth[0].provider_failures : 0}</p>
+            <p className="text-2xl font-bold text-white">{data.aiHealth?.length > 0 ? data.aiHealth[0].provider_failures : 0}</p>
           </div>
         </div>
       </div>
