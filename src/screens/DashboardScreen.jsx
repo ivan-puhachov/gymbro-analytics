@@ -18,6 +18,8 @@ export default function DashboardScreen() {
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
 
+  const [activeTab, setActiveTab] = useState('overview');
+
   const [startDate, setStartDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() - 30);
@@ -140,15 +142,18 @@ export default function DashboardScreen() {
   return (
     <div className="min-h-screen bg-gray-900 p-6">
       <header className="flex justify-between items-center mb-8 pb-4 border-b border-gray-700">
-        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">
-          GymBro Executive Dashboard
-        </h1>
+        <div className="flex items-center">
+          <img src="/logo.png" alt="GymBro Logo" className="w-8 h-8 mr-3" />
+          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">
+            GymBro Analytics
+          </h1>
+        </div>
         <button onClick={handleLogout} className="flex items-center text-gray-400 hover:text-white transition-colors">
           <LogOut size={20} className="mr-2" /> Logout
         </button>
       </header>
 
-      <div className="flex flex-wrap items-center gap-4 mb-8 p-4 bg-gray-800 rounded-xl border border-gray-700 shadow-sm">
+      <div className="flex flex-wrap items-center gap-4 mb-6 p-4 bg-gray-800 rounded-xl border border-gray-700 shadow-sm">
         <div className="flex items-center gap-2">
           <label className="text-gray-400 text-sm font-semibold">Start Date:</label>
           <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm" />
@@ -168,7 +173,24 @@ export default function DashboardScreen() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="flex gap-2 mb-6 border-b border-gray-700 pb-2 overflow-x-auto">
+        {['overview', 'telemetry', 'demographics', 'system'].map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-4 py-2 rounded-t-lg font-medium capitalize transition-colors ${
+              activeTab === tab
+                ? 'bg-gray-800 text-white border-b-2 border-blue-500'
+                : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === 'overview' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-gray-800 p-6 rounded-xl flex items-center shadow-lg border border-gray-700">
           <Activity className="text-blue-400 mr-4" size={32} />
           <div>
@@ -198,8 +220,10 @@ export default function DashboardScreen() {
           </div>
         </div>
       </div>
+      )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {activeTab === 'overview' && (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <ChartCard title="Daily Active Users (DAU)">
           {errors.dau ? (
             <div className="flex h-full items-center justify-center text-red-500">Failed to load DAU data.</div>
@@ -209,7 +233,7 @@ export default function DashboardScreen() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                 <XAxis dataKey="dayStr" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
                 <YAxis stroke="#9CA3AF" />
-                <Tooltip contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                <Tooltip cursor={{ fill: '#374151' }} contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
                 <Bar dataKey="active_users_count" fill="#3B82F6" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -225,13 +249,17 @@ export default function DashboardScreen() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={true} vertical={false} />
                 <XAxis type="number" stroke="#9CA3AF" />
                 <YAxis dataKey="stage" type="category" stroke="#9CA3AF" width={100} fontSize={12} />
-                <Tooltip contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                <Tooltip cursor={{ fill: '#374151' }} contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
                 <Bar dataKey="count" fill="#10B981" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
         </ChartCard>
+      </div>
+      )}
 
+      {activeTab === 'telemetry' && (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <ChartCard title="Hourly Activity Flow (Tallinn Time)">
           {errors.hourly ? (
             <div className="flex h-full items-center justify-center text-red-500">Failed to load hourly activity.</div>
@@ -241,7 +269,7 @@ export default function DashboardScreen() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                 <XAxis dataKey="shortHour" stroke="#9CA3AF" fontSize={11} tickMargin={10} />
                 <YAxis stroke="#9CA3AF" />
-                <Tooltip contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                <Tooltip cursor={{ fill: '#374151' }} contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
                 <Area type="monotone" dataKey="ai_success_count" stackId="1" stroke="#8B5CF6" fill="#8B5CF6" name="AI Success" />
                 <Area type="monotone" dataKey="telemetry_events_count" stackId="1" stroke="#3B82F6" fill="#3B82F6" name="Telemetry Events" />        
               </AreaChart>
@@ -249,23 +277,7 @@ export default function DashboardScreen() {
           )}
         </ChartCard>
 
-        <ChartCard title="AI Provider Health">
-          {errors.aiHealth ? (
-            <div className="flex h-full items-center justify-center text-red-500">Failed to load AI health data.</div>
-          ) : (
-            <ResponsiveContainer>
-              <LineChart data={processedAiHealth}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis dataKey="dayStr" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
-                <YAxis stroke="#9CA3AF" />
-                <Tooltip contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
-                <Line type="monotone" dataKey="success_count" stroke="#10B981" strokeWidth={2} name="Success" />
-                <Line type="monotone" dataKey="rate_limits_hit" stroke="#EF4444" strokeWidth={2} name="Rate Limited" />
-                <Line type="monotone" dataKey="provider_failures" stroke="#F59E0B" strokeWidth={2} name="Provider Errors" />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-        </ChartCard>
+        
 
         <ChartCard title="Telemetry Event Breakdown">
           {errors.eventsBreakdown ? (
@@ -276,7 +288,7 @@ export default function DashboardScreen() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={true} vertical={false} />
                 <XAxis type="number" stroke="#9CA3AF" />
                 <YAxis dataKey="event_type" type="category" stroke="#9CA3AF" width={110} fontSize={11} />
-                <Tooltip contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                <Tooltip cursor={{ fill: '#374151' }} contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
                 <Bar dataKey="count" fill="#8B5CF6" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -296,7 +308,7 @@ export default function DashboardScreen() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={true} vertical={false} />
                 <XAxis type="number" stroke="#9CA3AF" />
                 <YAxis dataKey="short_type" type="category" stroke="#9CA3AF" width={140} fontSize={11} />
-                <Tooltip contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                <Tooltip cursor={{ fill: '#374151' }} contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
                 <Bar dataKey="count" fill="#6366F1" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -306,7 +318,11 @@ export default function DashboardScreen() {
             </div>
           )}
         </ChartCard>
+      </div>
+      )}
 
+      {activeTab === 'demographics' && (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <ChartCard title="Usage by Age Group">
           {errors.ageGroup ? (
             <div className="flex h-full items-center justify-center text-red-500">Failed to load age group analytics.</div>
@@ -316,7 +332,7 @@ export default function DashboardScreen() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                 <XAxis dataKey="age_group" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
                 <YAxis stroke="#9CA3AF" />
-                <Tooltip contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                <Tooltip cursor={{ fill: '#374151' }} contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
                 <Bar dataKey="requests_count" fill="#EC4899" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -326,7 +342,6 @@ export default function DashboardScreen() {
             </div>
           )}
         </ChartCard>
-
         <ChartCard title="Usage by Segment">
           {errors.segment ? (
             <div className="flex h-full items-center justify-center text-red-500">Failed to load segment analytics.</div>
@@ -336,7 +351,7 @@ export default function DashboardScreen() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                 <XAxis dataKey="segment" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
                 <YAxis stroke="#9CA3AF" />
-                <Tooltip contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                <Tooltip cursor={{ fill: '#374151' }} contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
                 <Bar dataKey="total_tokens" fill="#F59E0B" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -346,7 +361,28 @@ export default function DashboardScreen() {
             </div>
           )}
         </ChartCard>
+      </div>
+      )}
 
+      {activeTab === 'system' && (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <ChartCard title="AI Provider Health">
+          {errors.aiHealth ? (
+            <div className="flex h-full items-center justify-center text-red-500">Failed to load AI health data.</div>
+          ) : (
+            <ResponsiveContainer>
+              <LineChart data={processedAiHealth}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="dayStr" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                <YAxis stroke="#9CA3AF" />
+                <Tooltip cursor={{ fill: '#374151' }} contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                <Line type="monotone" dataKey="success_count" stroke="#10B981" strokeWidth={2} name="Success" />
+                <Line type="monotone" dataKey="rate_limits_hit" stroke="#EF4444" strokeWidth={2} name="Rate Limited" />
+                <Line type="monotone" dataKey="provider_failures" stroke="#F59E0B" strokeWidth={2} name="Provider Errors" />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
+        </ChartCard>
         <ChartCard title="Requests Over Time">
           {errors.timeRange ? (
             <div className="flex h-full items-center justify-center text-red-500">Failed to load activity timeline.</div>
@@ -356,7 +392,7 @@ export default function DashboardScreen() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                 <XAxis dataKey="displayTime" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
                 <YAxis stroke="#9CA3AF" />
-                <Tooltip contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                <Tooltip cursor={{ fill: '#374151' }} contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
                 <Line type="monotone" dataKey="metric_value" stroke="#3B82F6" strokeWidth={2} name="Activity" />
               </LineChart>
             </ResponsiveContainer>
@@ -367,6 +403,7 @@ export default function DashboardScreen() {
           )}
         </ChartCard>
       </div>
+      )}
     </div>
   );
 }
