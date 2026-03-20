@@ -16,6 +16,7 @@ const ChartCard = ({ title, children }) => (
 export default function DashboardScreen() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [errors, setErrors] = useState({});
 
   const [startDate, setStartDate] = useState(() => {
     const d = new Date();
@@ -58,6 +59,18 @@ export default function DashboardScreen() {
           navigate('/login');
           return;
         }
+
+        setErrors({
+          dau: results[0].status === 'rejected',
+          onboarding: results[1].status === 'rejected',
+          aiHealth: results[2].status === 'rejected',
+          hourly: results[3].status === 'rejected',
+          engagement: results[4].status === 'rejected',
+          eventsBreakdown: results[5].status === 'rejected',
+          ageGroup: results[6].status === 'rejected',
+          segment: results[7].status === 'rejected',
+          timeRange: results[8].status === 'rejected',
+        });
 
         const safeData = (result, defaultVal) => result.status === 'fulfilled' ? result.value : defaultVal;
 
@@ -110,6 +123,10 @@ export default function DashboardScreen() {
   const processedDau = (data.dau || []).map(d => ({ ...d, dayStr: d.day ? d.day.split(' ')[0] : 'Unknown' })).reverse();
   const eventsBreakdownData = data.eventsBreakdown?.breakdown || [];
 
+  const sleepTelemetryData = eventsBreakdownData
+    .filter(d => d.event_type && d.event_type.startsWith('sleep.'))
+    .map(d => ({ ...d, short_type: d.event_type.replace('sleep.', '') }));
+
   const ageGroupData = data.ageGroup?.map(d => ({ ...d, age_group: d.age_group || 'Unknown' })) || [];
   const segmentData = data.segment?.map(d => ({ ...d, segment: d.segment || 'Unknown' })) || [];
 
@@ -156,86 +173,104 @@ export default function DashboardScreen() {
           <Activity className="text-blue-400 mr-4" size={32} />
           <div>
             <p className="text-gray-400">Total Engagements</p>
-            <p className="text-2xl font-bold text-white">{(data.engagement || []).reduce((sum, e) => sum + parseInt(e.meals_events_count || 0) + parseInt(e.training_events_count || 0), 0)}</p>
+            <p className="text-2xl font-bold text-white">{errors.engagement ? <span className="text-red-400 text-lg">Error</span> : (data.engagement || []).reduce((sum, e) => sum + parseInt(e.meals_events_count || 0) + parseInt(e.training_events_count || 0), 0)}</p>
           </div>
         </div>
         <div className="bg-gray-800 p-6 rounded-xl flex items-center shadow-lg border border-gray-700">
           <Users className="text-emerald-400 mr-4" size={32} />
           <div>
             <p className="text-gray-400">Onboarded Users</p>
-            <p className="text-2xl font-bold text-white">{data.onboarding?.pet_created_users || 0}</p>
+            <p className="text-2xl font-bold text-white">{errors.onboarding ? <span className="text-red-400 text-lg">Error</span> : (data.onboarding?.pet_created_users || 0)}</p>
           </div>
         </div>
         <div className="bg-gray-800 p-6 rounded-xl flex items-center shadow-lg border border-gray-700">
           <Database className="text-purple-400 mr-4" size={32} />
           <div>
             <p className="text-gray-400">Today DAU</p>
-            <p className="text-2xl font-bold text-white">{data.dau?.length > 0 ? data.dau[0].active_users_count : 0}</p>
+            <p className="text-2xl font-bold text-white">{errors.dau ? <span className="text-red-400 text-lg">Error</span> : data.dau?.length > 0 ? data.dau[0].active_users_count : 0}</p>
           </div>
         </div>
         <div className="bg-gray-800 p-6 rounded-xl flex items-center shadow-lg border border-gray-700">
           <ShieldAlert className="text-red-400 mr-4" size={32} />
           <div>
             <p className="text-gray-400">Recent API Errors</p>
-            <p className="text-2xl font-bold text-white">{data.aiHealth?.length > 0 ? data.aiHealth[0].provider_failures : 0}</p>
+            <p className="text-2xl font-bold text-white">{errors.aiHealth ? <span className="text-red-400 text-lg">Error</span> : data.aiHealth?.length > 0 ? data.aiHealth[0].provider_failures : 0}</p>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <ChartCard title="Daily Active Users (DAU)">
-          <ResponsiveContainer>
-            <BarChart data={processedDau}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis dataKey="dayStr" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
-              <YAxis stroke="#9CA3AF" />
-              <Tooltip contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
-              <Bar dataKey="active_users_count" fill="#3B82F6" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          {errors.dau ? (
+            <div className="flex h-full items-center justify-center text-red-500">Failed to load DAU data.</div>
+          ) : (
+            <ResponsiveContainer>
+              <BarChart data={processedDau}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="dayStr" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                <YAxis stroke="#9CA3AF" />
+                <Tooltip contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                <Bar dataKey="active_users_count" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </ChartCard>
 
         <ChartCard title="Global Onboarding Funnel">
-          <ResponsiveContainer>
-            <BarChart data={funnelData} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={true} vertical={false} />
-              <XAxis type="number" stroke="#9CA3AF" />
-              <YAxis dataKey="stage" type="category" stroke="#9CA3AF" width={100} fontSize={12} />
-              <Tooltip contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
-              <Bar dataKey="count" fill="#10B981" radius={[0, 4, 4, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          {errors.onboarding ? (
+            <div className="flex h-full items-center justify-center text-red-500">Failed to load onboarding data.</div>
+          ) : (
+            <ResponsiveContainer>
+              <BarChart data={funnelData} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={true} vertical={false} />
+                <XAxis type="number" stroke="#9CA3AF" />
+                <YAxis dataKey="stage" type="category" stroke="#9CA3AF" width={100} fontSize={12} />
+                <Tooltip contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                <Bar dataKey="count" fill="#10B981" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </ChartCard>
 
         <ChartCard title="Hourly Activity Flow (Tallinn Time)">
-          <ResponsiveContainer>
-            <AreaChart data={processedHourly}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis dataKey="shortHour" stroke="#9CA3AF" fontSize={11} tickMargin={10} />
-              <YAxis stroke="#9CA3AF" />
-              <Tooltip contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
-              <Area type="monotone" dataKey="ai_success_count" stackId="1" stroke="#8B5CF6" fill="#8B5CF6" name="AI Success" />
-              <Area type="monotone" dataKey="telemetry_events_count" stackId="1" stroke="#3B82F6" fill="#3B82F6" name="Telemetry Events" />
-            </AreaChart>
-          </ResponsiveContainer>
+          {errors.hourly ? (
+            <div className="flex h-full items-center justify-center text-red-500">Failed to load hourly activity.</div>
+          ) : (
+            <ResponsiveContainer>
+              <AreaChart data={processedHourly}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="shortHour" stroke="#9CA3AF" fontSize={11} tickMargin={10} />
+                <YAxis stroke="#9CA3AF" />
+                <Tooltip contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                <Area type="monotone" dataKey="ai_success_count" stackId="1" stroke="#8B5CF6" fill="#8B5CF6" name="AI Success" />
+                <Area type="monotone" dataKey="telemetry_events_count" stackId="1" stroke="#3B82F6" fill="#3B82F6" name="Telemetry Events" />        
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
         </ChartCard>
 
         <ChartCard title="AI Provider Health">
-          <ResponsiveContainer>
-            <LineChart data={processedAiHealth}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis dataKey="dayStr" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
-              <YAxis stroke="#9CA3AF" />
-              <Tooltip contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
-              <Line type="monotone" dataKey="success_count" stroke="#10B981" strokeWidth={2} name="Success" />
-              <Line type="monotone" dataKey="rate_limits_hit" stroke="#EF4444" strokeWidth={2} name="Rate Limited" />
-              <Line type="monotone" dataKey="provider_failures" stroke="#F59E0B" strokeWidth={2} name="Provider Errors" />
-            </LineChart>
-          </ResponsiveContainer>
+          {errors.aiHealth ? (
+            <div className="flex h-full items-center justify-center text-red-500">Failed to load AI health data.</div>
+          ) : (
+            <ResponsiveContainer>
+              <LineChart data={processedAiHealth}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="dayStr" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                <YAxis stroke="#9CA3AF" />
+                <Tooltip contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                <Line type="monotone" dataKey="success_count" stroke="#10B981" strokeWidth={2} name="Success" />
+                <Line type="monotone" dataKey="rate_limits_hit" stroke="#EF4444" strokeWidth={2} name="Rate Limited" />
+                <Line type="monotone" dataKey="provider_failures" stroke="#F59E0B" strokeWidth={2} name="Provider Errors" />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
         </ChartCard>
 
         <ChartCard title="Telemetry Event Breakdown">
-          {eventsBreakdownData.length > 0 ? (
+          {errors.eventsBreakdown ? (
+            <div className="flex h-full items-center justify-center text-red-500">Failed to load telemetry data.</div>
+          ) : eventsBreakdownData.length > 0 ? (
             <ResponsiveContainer>
               <BarChart data={eventsBreakdownData} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={true} vertical={false} />
@@ -252,8 +287,30 @@ export default function DashboardScreen() {
           )}
         </ChartCard>
 
+        <ChartCard title="Sleep Telemetry">
+          {errors.eventsBreakdown ? (
+            <div className="flex h-full items-center justify-center text-red-500">Failed to load sleep telemetry data.</div>
+          ) : sleepTelemetryData.length > 0 ? (
+            <ResponsiveContainer>
+              <BarChart data={sleepTelemetryData} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={true} vertical={false} />
+                <XAxis type="number" stroke="#9CA3AF" />
+                <YAxis dataKey="short_type" type="category" stroke="#9CA3AF" width={140} fontSize={11} />
+                <Tooltip contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                <Bar dataKey="count" fill="#6366F1" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-full items-center justify-center text-gray-500">
+              No sleep telemetry data available yet.
+            </div>
+          )}
+        </ChartCard>
+
         <ChartCard title="Usage by Age Group">
-          {ageGroupData.length > 0 ? (
+          {errors.ageGroup ? (
+            <div className="flex h-full items-center justify-center text-red-500">Failed to load age group analytics.</div>
+          ) : ageGroupData.length > 0 ? (
             <ResponsiveContainer>
               <BarChart data={ageGroupData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -271,7 +328,9 @@ export default function DashboardScreen() {
         </ChartCard>
 
         <ChartCard title="Usage by Segment">
-          {segmentData.length > 0 ? (
+          {errors.segment ? (
+            <div className="flex h-full items-center justify-center text-red-500">Failed to load segment analytics.</div>
+          ) : segmentData.length > 0 ? (
             <ResponsiveContainer>
               <BarChart data={segmentData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -289,7 +348,9 @@ export default function DashboardScreen() {
         </ChartCard>
 
         <ChartCard title="Requests Over Time">
-          {timeRangeData.length > 0 ? (
+          {errors.timeRange ? (
+            <div className="flex h-full items-center justify-center text-red-500">Failed to load activity timeline.</div>
+          ) : timeRangeData.length > 0 ? (
             <ResponsiveContainer>
               <LineChart data={timeRangeData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
