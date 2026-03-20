@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, AreaChart, Area } from 'recharts';
-import { LogOut, Activity, Users, Database, ShieldAlert } from 'lucide-react';
+import { LogOut, Activity, Users, Database, ShieldAlert, LayoutDashboard, Cpu } from 'lucide-react';
 import { api } from '../api';
 
 const ChartCard = ({ title, children }) => (
@@ -12,6 +12,14 @@ const ChartCard = ({ title, children }) => (
     </div>
   </div>
 );
+
+
+const NAV_ITEMS = [
+  { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+  { id: 'telemetry', label: 'Telemetry', icon: Activity },
+  { id: 'demographics', label: 'Demographics', icon: Users },
+  { id: 'system', label: 'System', icon: Cpu },
+];
 
 export default function DashboardScreen() {
   const [data, setData] = useState(null);
@@ -139,57 +147,73 @@ export default function DashboardScreen() {
     metric_value: d.requests_count !== undefined ? d.requests_count : d.total_tokens !== undefined ? d.total_tokens : d.count || 0
   })) : [];
 
-  return (
-    <div className="min-h-screen bg-gray-900 p-6">
-      <header className="flex justify-between items-center mb-8 pb-4 border-b border-gray-700">
-        <div className="flex items-center">
-          <img src="/logo.png" alt="GymBro Logo" className="w-8 h-8 mr-3" />
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">
-            GymBro Analytics
-          </h1>
+      return (
+    <div className="flex h-screen bg-gray-900 overflow-hidden">
+      {/* Sidebar */}
+      <aside className="w-64 bg-gray-900 border-r border-gray-800 flex flex-col justify-between shrink-0">
+        <div>
+          <div className="p-6 flex items-center border-b border-gray-800">
+            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">
+              GymBro Analytics
+            </span>
+          </div>
+          <nav className="p-4 space-y-2">
+            {NAV_ITEMS.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`w-full flex items-center px-4 py-3 rounded-lg font-medium transition-colors ${
+                    isActive
+                      ? 'bg-gray-800 text-white'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                  }`}
+                >
+                  <Icon size={20} className="mr-3 shrink-0" />
+                  {item.label}
+                </button>
+              );
+            })}
+          </nav>
         </div>
-        <button onClick={handleLogout} className="flex items-center text-gray-400 hover:text-white transition-colors">
-          <LogOut size={20} className="mr-2" /> Logout
-        </button>
-      </header>
-
-      <div className="flex flex-wrap items-center gap-4 mb-6 p-4 bg-gray-800 rounded-xl border border-gray-700 shadow-sm">
-        <div className="flex items-center gap-2">
-          <label className="text-gray-400 text-sm font-semibold">Start Date:</label>
-          <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm" />
-        </div>
-        <div className="flex items-center gap-2">
-          <label className="text-gray-400 text-sm font-semibold">End Date:</label>
-          <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm" />
-        </div>
-        <div className="flex items-center gap-2">
-          <label className="text-gray-400 text-sm font-semibold">Granularity:</label>
-          <select value={granularity} onChange={e => setGranularity(e.target.value)} className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm">
-            <option value="hour">Hour</option>
-            <option value="day">Day</option>
-            <option value="week">Week</option>
-            <option value="month">Month</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="flex gap-2 mb-6 border-b border-gray-700 pb-2 overflow-x-auto">
-        {['overview', 'telemetry', 'demographics', 'system'].map(tab => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-t-lg font-medium capitalize transition-colors ${
-              activeTab === tab
-                ? 'bg-gray-800 text-white border-b-2 border-blue-500'
-                : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
-            }`}
-          >
-            {tab}
+        <div className="p-4 border-t border-gray-800">
+          <button onClick={handleLogout} className="w-full flex items-center px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors">
+            <LogOut size={20} className="mr-3 shrink-0" /> Logout
           </button>
-        ))}
-      </div>
+        </div>
+      </aside>
 
-      {activeTab === 'overview' && (
+      {/* Main Content */}
+      <main className="flex-1 bg-gray-900 p-8 h-screen overflow-y-auto">
+        <header className="mb-8 pb-4 border-b border-gray-800">
+          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">
+            {NAV_ITEMS.find(i => i.id === activeTab)?.label || 'Dashboard'}
+          </h1>
+        </header>
+
+        <div className="flex flex-wrap items-center gap-4 mb-6 p-4 bg-gray-800 rounded-xl border border-gray-700 shadow-sm">
+          <div className="flex items-center gap-2">
+            <label className="text-gray-400 text-sm font-semibold">Start Date:</label>
+            <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm" />
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-gray-400 text-sm font-semibold">End Date:</label>
+            <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm" />
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-gray-400 text-sm font-semibold">Granularity:</label>
+            <select value={granularity} onChange={e => setGranularity(e.target.value)} className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm">
+              <option value="hour">Hour</option>
+              <option value="day">Day</option>
+              <option value="week">Week</option>
+              <option value="month">Month</option>
+            </select>
+          </div>
+        </div>
+
+        {activeTab === 'overview' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-gray-800 p-6 rounded-xl flex items-center shadow-lg border border-gray-700">
           <Activity className="text-blue-400 mr-4" size={32} />
@@ -404,6 +428,7 @@ export default function DashboardScreen() {
         </ChartCard>
       </div>
       )}
+      </main>
     </div>
   );
 }
