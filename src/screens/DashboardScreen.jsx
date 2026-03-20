@@ -16,21 +16,35 @@ const ChartCard = ({ title, children }) => (
 export default function DashboardScreen() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const [startDate, setStartDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 30);
+    return d.toISOString().split('T')[0];
+  });
+  const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [granularity, setGranularity] = useState('day');
+
   const navigate = useNavigate();
 
   useEffect(() => {
     async function loadData() {
       const token = localStorage.getItem('admin_token');
       try {
-        const [dau, onboarding, aiHealth, hourly, engagement, eventsBreakdown] = await Promise.all([
+        const queryParams = { start: startDate, end: endDate, granularity };
+
+        const [dau, onboarding, aiHealth, hourly, engagement, eventsBreakdown, ageGroup, segment, timeRange] = await Promise.all([
           api.getReport('daily-active-users', token),
           api.getReport('onboarding', token),
           api.getReport('ai-health', token),
           api.getReport('hourly-activity', token),
           api.getReport('engagement', token),
-          api.getAnalytics('events/breakdown', token),
+          api.getAnalytics('events/breakdown', token, queryParams),
+          api.getAnalytics('by-age-group', token),
+          api.getAnalytics('by-segment', token),
+          api.getAnalytics('by-time-range', token, queryParams).catch(() => null),
         ]);
-        setData({ dau, onboarding, aiHealth, hourly, engagement, eventsBreakdown });
+        setData({ dau, onboarding, aiHealth, hourly, engagement, eventsBreakdown, ageGroup, segment, timeRange });
       } catch (err) {
         console.error(err);
         if (err.message.includes('401') || err.message.includes('403')) {
@@ -42,7 +56,7 @@ export default function DashboardScreen() {
       }
     }
     loadData();
-  }, [navigate]);
+  }, [navigate, startDate, endDate, granularity]);
 
   const handleLogout = () => {
     localStorage.removeItem('admin_token');
@@ -73,6 +87,16 @@ export default function DashboardScreen() {
   const processedDau = data.dau.map(d => ({ ...d, dayStr: d.day ? d.day.split(' ')[0] : 'Unknown' })).reverse();
   const eventsBreakdownData = data.eventsBreakdown?.breakdown || [];
 
+  const ageGroupData = data.ageGroup?.map(d => ({ ...d, age_group: d.age_group || 'Unknown' })) || [];
+  const segmentData = data.segment?.map(d => ({ ...d, segment: d.segment || 'Unknown' })) || [];
+
+  const timeRangeList = data.timeRange?.timeline || data.timeRange || [];
+  const timeRangeData = Array.isArray(timeRangeList) ? timeRangeList.map(d => ({
+    ...d,
+    displayTime: d.bucket || d.timestamp || d.date || d.day || 'Unknown',
+    metric_value: d.requests_count !== undefined ? d.requests_count : d.total_tokens !== undefined ? d.total_tokens : d.count || 0
+  })) : [];
+
   return (
     <div className="min-h-screen bg-gray-900 p-6">
       <header className="flex justify-between items-center mb-8 pb-4 border-b border-gray-700">
@@ -83,6 +107,26 @@ export default function DashboardScreen() {
           <LogOut size={20} className="mr-2" /> Logout
         </button>
       </header>
+
+      <div className="flex flex-wrap items-center gap-4 mb-8 p-4 bg-gray-800 rounded-xl border border-gray-700 shadow-sm">
+        <div className="flex items-center gap-2">
+          <label className="text-gray-400 text-sm font-semibold">Start Date:</label>
+          <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm" />
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-gray-400 text-sm font-semibold">End Date:</label>
+          <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm" />
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-gray-400 text-sm font-semibold">Granularity:</label>
+          <select value={granularity} onChange={e => setGranularity(e.target.value)} className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm">
+            <option value="hour">Hour</option>
+            <option value="day">Day</option>
+            <option value="week">Week</option>
+            <option value="month">Month</option>
+          </select>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-gray-800 p-6 rounded-xl flex items-center shadow-lg border border-gray-700">
@@ -181,6 +225,60 @@ export default function DashboardScreen() {
           ) : (
             <div className="flex h-full items-center justify-center text-gray-500">
               No telemetry events recorded yet.
+            </div>
+          )}
+        </ChartCard>
+
+        <ChartCard title="Usage by Age Group">
+          {ageGroupData.length > 0 ? (
+            <ResponsiveContainer>
+              <BarChart data={ageGroupData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="age_group" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                <YAxis stroke="#9CA3AF" />
+                <Tooltip contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                <Bar dataKey="requests_count" fill="#EC4899" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-full items-center justify-center text-gray-500">
+              No age group analytics available yet.
+            </div>
+          )}
+        </ChartCard>
+
+        <ChartCard title="Usage by Segment">
+          {segmentData.length > 0 ? (
+            <ResponsiveContainer>
+              <BarChart data={segmentData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="segment" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                <YAxis stroke="#9CA3AF" />
+                <Tooltip contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                <Bar dataKey="total_tokens" fill="#F59E0B" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-full items-center justify-center text-gray-500">
+              No segment analytics available yet.
+            </div>
+          )}
+        </ChartCard>
+
+        <ChartCard title="Requests Over Time">
+          {timeRangeData.length > 0 ? (
+            <ResponsiveContainer>
+              <LineChart data={timeRangeData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="displayTime" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                <YAxis stroke="#9CA3AF" />
+                <Tooltip contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                <Line type="monotone" dataKey="metric_value" stroke="#3B82F6" strokeWidth={2} name="Activity" />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-full items-center justify-center text-gray-500">
+              No activity data available for this range.
             </div>
           )}
         </ChartCard>
