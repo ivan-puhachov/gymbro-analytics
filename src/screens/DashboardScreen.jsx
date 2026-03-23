@@ -52,7 +52,6 @@ export default function DashboardScreen() {
           api.getReport('engagement', token),
           api.getAnalytics('events/breakdown', token, queryParams),
           api.getAnalytics('by-age-group', token),
-          api.getAnalytics('by-segment', token),
           api.getAnalytics('by-time-range', token, queryParams),
         ];
 
@@ -78,8 +77,7 @@ export default function DashboardScreen() {
           engagement: results[4].status === 'rejected',
           eventsBreakdown: results[5].status === 'rejected',
           ageGroup: results[6].status === 'rejected',
-          segment: results[7].status === 'rejected',
-          timeRange: results[8].status === 'rejected',
+          timeRange: results[7].status === 'rejected',
         });
 
         const safeData = (result, defaultVal) => result.status === 'fulfilled' ? result.value : defaultVal;
@@ -92,8 +90,7 @@ export default function DashboardScreen() {
           engagement: safeData(results[4], []),
           eventsBreakdown: safeData(results[5], { breakdown: [] }),
           ageGroup: safeData(results[6], []),
-          segment: safeData(results[7], []),
-          timeRange: safeData(results[8], []),
+          timeRange: safeData(results[7], []),
         });
       } catch (err) {
         console.error("Unexpected error in loadData:", err);
@@ -138,7 +135,6 @@ export default function DashboardScreen() {
     .map(d => ({ ...d, short_type: d.event_type.replace('sleep.', '') }));
 
   const ageGroupData = data.ageGroup?.map(d => ({ ...d, age_group: d.age_group || 'Unknown' })) || [];
-  const segmentData = data.segment?.map(d => ({ ...d, segment: d.segment || 'Unknown' })) || [];
 
   const timeRangeList = data.timeRange?.timeline || data.timeRange || [];
   const timeRangeData = Array.isArray(timeRangeList) ? timeRangeList.map(d => ({
@@ -363,25 +359,6 @@ export default function DashboardScreen() {
           ) : (
             <div className="flex h-full items-center justify-center text-gray-500">
               No age group analytics available yet.
-            </div>
-          )}
-        </ChartCard>
-        <ChartCard title="Usage by Segment">
-          {errors.segment ? (
-            <div className="flex h-full items-center justify-center text-red-500">Failed to load segment analytics.</div>
-          ) : segmentData.length > 0 ? (
-            <ResponsiveContainer>
-              <BarChart data={segmentData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis dataKey="segment" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
-                <YAxis stroke="#9CA3AF" />
-                <Tooltip cursor={{ fill: '#374151' }} contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
-                <Bar dataKey="total_tokens" fill="#F59E0B" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex h-full items-center justify-center text-gray-500">
-              No segment analytics available yet.
             </div>
           )}
         </ChartCard>
