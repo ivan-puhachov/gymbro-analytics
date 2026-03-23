@@ -36,7 +36,28 @@ export default function DashboardScreen() {
   const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [granularity, setGranularity] = useState('day');
 
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalUsers, setModalUsers] = useState([]);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [modalError, setModalError] = useState(false);
+
   const navigate = useNavigate();
+
+  const handleOnboardedClick = async () => {
+    setModalOpen(true);
+    setModalLoading(true);
+    setModalError(false);
+    try {
+      const token = localStorage.getItem('admin_token');
+      const users = await api.getAnalytics('users/onboarded', token);
+      setModalUsers(users);
+    } catch(err) {
+      console.error(err);
+      setModalError(true);
+    } finally {
+      setModalLoading(false);
+    }
+  };
 
   useEffect(() => {
     async function loadData() {
@@ -218,7 +239,10 @@ export default function DashboardScreen() {
             <p className="text-2xl font-bold text-white">{errors.engagement ? <span className="text-red-400 text-lg">Error</span> : (data.engagement || []).reduce((sum, e) => sum + parseInt(e.meals_events_count || 0) + parseInt(e.training_events_count || 0), 0)}</p>
           </div>
         </div>
-        <div className="bg-gray-800 p-6 rounded-xl flex items-center shadow-lg border border-gray-700">
+        <div 
+          className="bg-gray-800 p-6 rounded-xl flex items-center shadow-lg border border-gray-700 cursor-pointer hover:bg-gray-700 transition-colors"
+          onClick={handleOnboardedClick}
+        >
           <Users className="text-emerald-400 mr-4" size={32} />
           <div>
             <p className="text-gray-400">Onboarded Users</p>
@@ -405,6 +429,44 @@ export default function DashboardScreen() {
         </ChartCard>
       </div>
       )}
+
+      {/* Onboarded Users Modal */}
+      {modalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setModalOpen(false)}>
+          <div className="bg-gray-800 border border-gray-700 rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="p-6 border-b border-gray-700 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-white">Onboarded Users</h2>
+              <button 
+                onClick={() => setModalOpen(false)}
+                className="text-gray-400 hover:text-white transition-colors text-2xl leading-none"
+              >
+                &times;
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto flex-1">
+              {modalLoading ? (
+                <div className="text-center text-gray-400 py-8">Loading onboarded users...</div>
+              ) : modalError ? (
+                <div className="text-center text-red-500 py-8">Failed to load onboarded users.</div>
+              ) : modalUsers.length === 0 ? (
+                <div className="text-center text-gray-400 py-8">No onboarded users found.</div>
+              ) : (
+                <div className="space-y-3">
+                  {modalUsers.map(u => (
+                    <div key={u.id} className="bg-gray-900 p-4 rounded-lg flex justify-between items-center border border-gray-700">
+                      <div className="text-white font-medium truncate mr-4">{u.email}</div>
+                      <div className="text-gray-400 text-sm shrink-0">
+                        {new Date(u.created_at).toLocaleString()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       </main>
     </div>
   );
