@@ -18,6 +18,7 @@ const NAV_ITEMS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
   { id: 'telemetry', label: 'Telemetry', icon: Activity },
   { id: 'demographics', label: 'Demographics', icon: Users },
+  { id: 'insights', label: 'User Insights', icon: Database },
   { id: 'system', label: 'System', icon: Cpu },
 ];
 
@@ -76,6 +77,9 @@ export default function DashboardScreen() {
           eventsBreakdown: api.getAnalytics('events/breakdown', token, queryParams),
           ageGroup: api.getAnalytics('by-age-group', token),
           timeRange: api.getAnalytics('by-time-range', token, queryParams),
+          genderInsights: api.getAnalytics('by-gender', token),
+          weightInsights: api.getAnalytics('by-weight-bucket', token),
+          heightInsights: api.getAnalytics('by-height-bucket', token),
         };
 
         const keys = Object.keys(promiseMap);
@@ -107,6 +111,9 @@ export default function DashboardScreen() {
           eventsBreakdown: results.eventsBreakdown.status === 'rejected',
           ageGroup: results.ageGroup.status === 'rejected',
           timeRange: results.timeRange.status === 'rejected',
+          genderInsights: results.genderInsights.status === 'rejected',
+          weightInsights: results.weightInsights.status === 'rejected',
+          heightInsights: results.heightInsights.status === 'rejected',
         });
 
         const safeData = (result, defaultVal) => result?.status === 'fulfilled' ? result.value : defaultVal;
@@ -120,6 +127,9 @@ export default function DashboardScreen() {
           eventsBreakdown: safeData(results.eventsBreakdown, { breakdown: [] }),
           ageGroup: safeData(results.ageGroup, []),
           timeRange: safeData(results.timeRange, []),
+          genderInsights: safeData(results.genderInsights, []),
+          weightInsights: safeData(results.weightInsights, []),
+          heightInsights: safeData(results.heightInsights, []),
         });
       } catch (err) {
         console.error("Unexpected error in loadData:", err);
@@ -396,7 +406,69 @@ export default function DashboardScreen() {
         </ChartCard>
       </div>
       )}
+      {activeTab === 'insights' && (
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        <ChartCard title="Requests by Gender">
+          {errors.genderInsights ? (
+            <div className="flex h-full items-center justify-center text-red-500">Failed to load gender insights data.</div>
+          ) : data.genderInsights?.length > 0 ? (
+            <ResponsiveContainer>
+              <BarChart data={data.genderInsights}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="gender" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                <YAxis stroke="#9CA3AF" />
+                <Tooltip cursor={{ fill: '#374151' }} contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                <Bar dataKey="avg_requests" fill="#3B82F6" radius={[4, 4, 0, 0]} name="Avg Requests" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-full items-center justify-center text-gray-500">
+              No gender data available.
+            </div>
+          )}
+        </ChartCard>
 
+        <ChartCard title="Requests by Weight">
+          {errors.weightInsights ? (
+            <div className="flex h-full items-center justify-center text-red-500">Failed to load weight insights data.</div>
+          ) : data.weightInsights?.length > 0 ? (
+            <ResponsiveContainer>
+              <BarChart data={data.weightInsights}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="bucket" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                <YAxis stroke="#9CA3AF" />
+                <Tooltip cursor={{ fill: '#374151' }} contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                <Bar dataKey="avg_requests" fill="#10B981" radius={[4, 4, 0, 0]} name="Avg Requests" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-full items-center justify-center text-gray-500">
+              No weight data available.
+            </div>
+          )}
+        </ChartCard>
+
+        <ChartCard title="Requests by Height">
+          {errors.heightInsights ? (
+            <div className="flex h-full items-center justify-center text-red-500">Failed to load height insights data.</div>
+          ) : data.heightInsights?.length > 0 ? (
+            <ResponsiveContainer>
+              <BarChart data={data.heightInsights}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="bucket" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                <YAxis stroke="#9CA3AF" />
+                <Tooltip cursor={{ fill: '#374151' }} contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                <Bar dataKey="avg_requests" fill="#8B5CF6" radius={[4, 4, 0, 0]} name="Avg Requests" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-full items-center justify-center text-gray-500">
+              No height data available.
+            </div>
+          )}
+        </ChartCard>
+      </div>
+      )}
       {activeTab === 'system' && (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <ChartCard title="AI Provider Health">
