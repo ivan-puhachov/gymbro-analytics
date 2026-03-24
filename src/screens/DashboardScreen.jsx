@@ -40,6 +40,7 @@ export default function DashboardScreen() {
   const [modalUsers, setModalUsers] = useState([]);
   const [modalLoading, setModalLoading] = useState(false);
   const [modalError, setModalError] = useState(false);
+  const [modalSearch, setModalSearch] = useState('');
 
   const navigate = useNavigate();
 
@@ -47,6 +48,7 @@ export default function DashboardScreen() {
     setModalOpen(true);
     setModalLoading(true);
     setModalError(false);
+    setModalSearch('');
     try {
       const token = localStorage.getItem('admin_token');
       const users = await api.getAnalytics('users/onboarded', token);
@@ -65,21 +67,27 @@ export default function DashboardScreen() {
       try {
         const queryParams = { start: startDate, end: endDate, granularity };
 
-        const promises = [
-          api.getReport('daily-active-users', token),
-          api.getReport('onboarding', token),
-          api.getReport('ai-health', token),
-          api.getReport('hourly-activity', token),
-          api.getReport('engagement', token),
-          api.getAnalytics('events/breakdown', token, queryParams),
-          api.getAnalytics('by-age-group', token),
-          api.getAnalytics('by-time-range', token, queryParams),
-        ];
+        const promiseMap = {
+          dau: api.getReport('daily-active-users', token),
+          onboarding: api.getReport('onboarding', token),
+          aiHealth: api.getReport('ai-health', token),
+          hourly: api.getReport('hourly-activity', token),
+          engagement: api.getReport('engagement', token),
+          eventsBreakdown: api.getAnalytics('events/breakdown', token, queryParams),
+          ageGroup: api.getAnalytics('by-age-group', token),
+          timeRange: api.getAnalytics('by-time-range', token, queryParams),
+        };
 
-        const results = await Promise.allSettled(promises);
+        const keys = Object.keys(promiseMap);
+        const settledResults = await Promise.allSettled(Object.values(promiseMap));
+        
+        const results = keys.reduce((acc, key, index) => {
+          acc[key] = settledResults[index];
+          return acc;
+        }, {});
 
         // Check for auth errors across all rejected promises
-        const hasAuthError = results.some(r => 
+        const hasAuthError = Object.values(results).some(r => 
           r.status === 'rejected' && 
           (r.reason?.message?.includes('401') || r.reason?.message?.includes('403'))
         );
@@ -91,27 +99,27 @@ export default function DashboardScreen() {
         }
 
         setErrors({
-          dau: results[0].status === 'rejected',
-          onboarding: results[1].status === 'rejected',
-          aiHealth: results[2].status === 'rejected',
-          hourly: results[3].status === 'rejected',
-          engagement: results[4].status === 'rejected',
-          eventsBreakdown: results[5].status === 'rejected',
-          ageGroup: results[6].status === 'rejected',
-          timeRange: results[7].status === 'rejected',
+          dau: results.dau.status === 'rejected',
+          onboarding: results.onboarding.status === 'rejected',
+          aiHealth: results.aiHealth.status === 'rejected',
+          hourly: results.hourly.status === 'rejected',
+          engagement: results.engagement.status === 'rejected',
+          eventsBreakdown: results.eventsBreakdown.status === 'rejected',
+          ageGroup: results.ageGroup.status === 'rejected',
+          timeRange: results.timeRange.status === 'rejected',
         });
 
-        const safeData = (result, defaultVal) => result.status === 'fulfilled' ? result.value : defaultVal;
+        const safeData = (result, defaultVal) => result?.status === 'fulfilled' ? result.value : defaultVal;
 
         setData({
-          dau: safeData(results[0], []),
-          onboarding: safeData(results[1], {}),
-          aiHealth: safeData(results[2], []),
-          hourly: safeData(results[3], []),
-          engagement: safeData(results[4], []),
-          eventsBreakdown: safeData(results[5], { breakdown: [] }),
-          ageGroup: safeData(results[6], []),
-          timeRange: safeData(results[7], []),
+          dau: safeData(results.dau, []),
+          onboarding: safeData(results.onboarding, {}),
+          aiHealth: safeData(results.aiHealth, []),
+          hourly: safeData(results.hourly, []),
+          engagement: safeData(results.engagement, []),
+          eventsBreakdown: safeData(results.eventsBreakdown, { breakdown: [] }),
+          ageGroup: safeData(results.ageGroup, []),
+          timeRange: safeData(results.timeRange, []),
         });
       } catch (err) {
         console.error("Unexpected error in loadData:", err);
@@ -444,6 +452,17 @@ export default function DashboardScreen() {
               </button>
             </div>
             <div className="p-6 overflow-y-auto flex-1">
+              {!modalLoading && !modalError && modalUsers.length > 0 && (
+                <div className="mb-4">
+                  <input
+                    type="text"
+                    placeholder="Search by email..."
+                    value={modalSearch}
+                    onChange={e => setModalSearch(e.target.value)}
+                    className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              )}
               {modalLoading ? (
                 <div className="text-center text-gray-400 py-8">Loading onboarded users...</div>
               ) : modalError ? (
@@ -451,16 +470,24 @@ export default function DashboardScreen() {
               ) : modalUsers.length === 0 ? (
                 <div className="text-center text-gray-400 py-8">No onboarded users found.</div>
               ) : (
-                <div className="space-y-3">
-                  {modalUsers.map(u => (
-                    <div key={u.id} className="bg-gray-900 p-4 rounded-lg flex justify-between items-center border border-gray-700">
-                      <div className="text-white font-medium truncate mr-4">{u.email}</div>
-                      <div className="text-gray-400 text-sm shrink-0">
-                        {new Date(u.created_at).toLocaleString()}
-                      </div>
+                (() => {
+                  const filteredUsers = modalUsers.filter(u => (u.email || '').toLowerCase().includes(modalSearch.toLowerCase()));
+                  if (filteredUsers.length === 0) {
+                    return <div className="text-center text-gray-400 py-8">No matching onboarded users found.</div>;
+                  }
+                  return (
+                    <div className="space-y-3">
+                      {filteredUsers.map(u => (
+                        <div key={u.id} className="bg-gray-900 p-4 rounded-lg flex justify-between items-center border border-gray-700">
+                          <div className="text-white font-medium truncate mr-4">{u.email}</div>
+                          <div className="text-gray-400 text-sm shrink-0">
+                            {new Date(u.created_at).toLocaleString()}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  );
+                })()
               )}
             </div>
           </div>
