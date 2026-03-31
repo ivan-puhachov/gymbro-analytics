@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, AreaChart, Area } from 'recharts';
-import { LogOut, Activity, Users, ShieldAlert, LayoutDashboard, Cpu } from 'lucide-react';
+import { LogOut, Activity, Users, Database, ShieldAlert, LayoutDashboard, Cpu } from 'lucide-react';
 import { api } from '../api';
 
 const ChartCard = ({ title, children }) => (
