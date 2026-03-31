@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, AreaChart, Area } from 'recharts';
-import { LogOut, Activity, Users, Database, ShieldAlert, LayoutDashboard, Cpu } from 'lucide-react';
+import { LogOut, Activity, Users, ShieldAlert, LayoutDashboard, Cpu } from 'lucide-react';
 import { api } from '../api';
 
 const ChartCard = ({ title, children }) => (
@@ -13,12 +13,26 @@ const ChartCard = ({ title, children }) => (
   </div>
 );
 
+const SectionHeader = ({ title, description }) => (
+  <div className="mb-4">
+    <h2 className="text-xl font-semibold text-white">{title}</h2>
+    {description && <p className="text-sm text-gray-400 mt-1">{description}</p>}
+  </div>
+);
+
+const MetricCard = ({ title, value, subtitle }) => (
+  <div className="bg-gray-800 p-5 rounded-xl border border-gray-700 shadow-sm">
+    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">{title}</p>
+    <p className="text-2xl font-bold text-white mt-3">{value}</p>
+    {subtitle && <p className="text-sm text-gray-400 mt-1">{subtitle}</p>}
+  </div>
+);
+
 
 const NAV_ITEMS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
   { id: 'telemetry', label: 'Telemetry', icon: Activity },
   { id: 'demographics', label: 'Demographics', icon: Users },
-  { id: 'insights', label: 'User Insights', icon: Database },
   { id: 'system', label: 'System', icon: Cpu },
 ];
 
@@ -67,6 +81,7 @@ export default function DashboardScreen() {
       const token = localStorage.getItem('admin_token');
       try {
         const queryParams = { start: startDate, end: endDate, granularity };
+        const demographicsQueryParams = { start: startDate, end: endDate };
 
         const promiseMap = {
           dau: api.getReport('daily-active-users', token),
@@ -75,11 +90,16 @@ export default function DashboardScreen() {
           hourly: api.getReport('hourly-activity', token),
           engagement: api.getReport('engagement', token),
           eventsBreakdown: api.getAnalytics('events/breakdown', token, queryParams),
-          ageGroup: api.getAnalytics('by-age-group', token),
+          ageGroup: api.getAnalytics('by-age-group', token, demographicsQueryParams),
           timeRange: api.getAnalytics('by-time-range', token, queryParams),
-          genderInsights: api.getAnalytics('by-gender', token),
-          weightInsights: api.getAnalytics('by-weight-bucket', token),
-          heightInsights: api.getAnalytics('by-height-bucket', token),
+          genderInsights: api.getAnalytics('by-gender', token, demographicsQueryParams),
+          weightInsights: api.getAnalytics('by-weight-bucket', token, demographicsQueryParams),
+          heightInsights: api.getAnalytics('by-height-bucket', token, demographicsQueryParams),
+          profileCompleteness: api.getAnalytics('profile-completeness', token),
+          usersByAgeGroup: api.getAnalytics('users-by-age-group', token),
+          usersByGender: api.getAnalytics('users-by-gender', token),
+          usersByWeight: api.getAnalytics('users-by-weight-bucket', token),
+          usersByHeight: api.getAnalytics('users-by-height-bucket', token),
         };
 
         const keys = Object.keys(promiseMap);
@@ -114,6 +134,11 @@ export default function DashboardScreen() {
           genderInsights: results.genderInsights.status === 'rejected',
           weightInsights: results.weightInsights.status === 'rejected',
           heightInsights: results.heightInsights.status === 'rejected',
+          profileCompleteness: results.profileCompleteness.status === 'rejected',
+          usersByAgeGroup: results.usersByAgeGroup.status === 'rejected',
+          usersByGender: results.usersByGender.status === 'rejected',
+          usersByWeight: results.usersByWeight.status === 'rejected',
+          usersByHeight: results.usersByHeight.status === 'rejected',
         });
 
         const safeData = (result, defaultVal) => result?.status === 'fulfilled' ? result.value : defaultVal;
@@ -130,6 +155,18 @@ export default function DashboardScreen() {
           genderInsights: safeData(results.genderInsights, []),
           weightInsights: safeData(results.weightInsights, []),
           heightInsights: safeData(results.heightInsights, []),
+          profileCompleteness: safeData(results.profileCompleteness, {
+            total_users: 0,
+            age_filled: 0,
+            gender_filled: 0,
+            weight_filled: 0,
+            height_filled: 0,
+            about_me_filled: 0,
+          }),
+          usersByAgeGroup: safeData(results.usersByAgeGroup, []),
+          usersByGender: safeData(results.usersByGender, []),
+          usersByWeight: safeData(results.usersByWeight, []),
+          usersByHeight: safeData(results.usersByHeight, []),
         });
       } catch (err) {
         console.error("Unexpected error in loadData:", err);
@@ -174,6 +211,27 @@ export default function DashboardScreen() {
     .map(d => ({ ...d, short_type: d.event_type.replace('sleep.', '') }));
 
   const ageGroupData = data.ageGroup?.map(d => ({ ...d, age_group: d.age_group || 'Unknown' })) || [];
+  const usersByAgeGroupData = data.usersByAgeGroup?.map(d => ({ ...d, age_group: d.age_group || 'Unknown' })) || [];
+  const usersByGenderData = data.usersByGender?.map(d => ({ ...d, gender: d.gender || 'Unknown' })) || [];
+  const usersByWeightData = data.usersByWeight || [];
+  const usersByHeightData = data.usersByHeight || [];
+  const profileCompleteness = data.profileCompleteness || {
+    total_users: 0,
+    age_filled: 0,
+    gender_filled: 0,
+    weight_filled: 0,
+    height_filled: 0,
+    about_me_filled: 0,
+  };
+  const totalProfileUsers = profileCompleteness.total_users || 0;
+  const completenessMetrics = [
+    { key: 'total_users', title: 'Total Users', filled: totalProfileUsers, isTotal: true },
+    { key: 'age_filled', title: 'Age Filled', filled: profileCompleteness.age_filled || 0 },
+    { key: 'gender_filled', title: 'Gender Filled', filled: profileCompleteness.gender_filled || 0 },
+    { key: 'weight_filled', title: 'Weight Filled', filled: profileCompleteness.weight_filled || 0 },
+    { key: 'height_filled', title: 'Height Filled', filled: profileCompleteness.height_filled || 0 },
+    { key: 'about_me_filled', title: 'About Me Filled', filled: profileCompleteness.about_me_filled || 0 },
+  ];
 
   const timeRangeList = data.timeRange?.timeline || data.timeRange || [];
   const timeRangeData = Array.isArray(timeRangeList) ? timeRangeList.map(d => ({
@@ -384,90 +442,220 @@ export default function DashboardScreen() {
       )}
 
       {activeTab === 'demographics' && (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <ChartCard title="Usage by Age Group">
-          {errors.ageGroup ? (
-            <div className="flex h-full items-center justify-center text-red-500">Failed to load age group analytics.</div>
-          ) : ageGroupData.length > 0 ? (
-            <ResponsiveContainer>
-              <BarChart data={ageGroupData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis dataKey="age_group" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
-                <YAxis stroke="#9CA3AF" />
-                <Tooltip cursor={{ fill: '#374151' }} contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
-                <Bar dataKey="requests_count" fill="#EC4899" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex h-full items-center justify-center text-gray-500">
-              No age group analytics available yet.
+      <>
+        <div className="mb-8">
+          <SectionHeader
+            title="Profile Completeness"
+            description="How much profile information non-admin users have filled in."
+          />
+          {errors.profileCompleteness ? (
+            <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-sm text-red-500">
+              Failed to load profile completeness data.
             </div>
-          )}
-        </ChartCard>
-      </div>
-      )}
-      {activeTab === 'insights' && (
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-        <ChartCard title="Requests by Gender">
-          {errors.genderInsights ? (
-            <div className="flex h-full items-center justify-center text-red-500">Failed to load gender insights data.</div>
-          ) : data.genderInsights?.length > 0 ? (
-            <ResponsiveContainer>
-              <BarChart data={data.genderInsights}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis dataKey="gender" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
-                <YAxis stroke="#9CA3AF" />
-                <Tooltip cursor={{ fill: '#374151' }} contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
-                <Bar dataKey="avg_requests" fill="#3B82F6" radius={[4, 4, 0, 0]} name="Avg Requests" />
-              </BarChart>
-            </ResponsiveContainer>
           ) : (
-            <div className="flex h-full items-center justify-center text-gray-500">
-              No gender data available.
-            </div>
-          )}
-        </ChartCard>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {completenessMetrics.map((metric) => {
+                if (metric.isTotal) {
+                  return (
+                    <MetricCard
+                      key={metric.key}
+                      title={metric.title}
+                      value={metric.filled}
+                      subtitle="Non-admin profiles"
+                    />
+                  );
+                }
 
-        <ChartCard title="Requests by Weight">
-          {errors.weightInsights ? (
-            <div className="flex h-full items-center justify-center text-red-500">Failed to load weight insights data.</div>
-          ) : data.weightInsights?.length > 0 ? (
-            <ResponsiveContainer>
-              <BarChart data={data.weightInsights}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis dataKey="bucket" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
-                <YAxis stroke="#9CA3AF" />
-                <Tooltip cursor={{ fill: '#374151' }} contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
-                <Bar dataKey="avg_requests" fill="#10B981" radius={[4, 4, 0, 0]} name="Avg Requests" />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex h-full items-center justify-center text-gray-500">
-              No weight data available.
+                const percent = totalProfileUsers > 0 ? Math.round((metric.filled / totalProfileUsers) * 100) : 0;
+                return (
+                  <MetricCard
+                    key={metric.key}
+                    title={metric.title}
+                    value={`${metric.filled} / ${totalProfileUsers}`}
+                    subtitle={`${percent}% complete`}
+                  />
+                );
+              })}
             </div>
           )}
-        </ChartCard>
+        </div>
 
-        <ChartCard title="Requests by Height">
-          {errors.heightInsights ? (
-            <div className="flex h-full items-center justify-center text-red-500">Failed to load height insights data.</div>
-          ) : data.heightInsights?.length > 0 ? (
-            <ResponsiveContainer>
-              <BarChart data={data.heightInsights}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis dataKey="bucket" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
-                <YAxis stroke="#9CA3AF" />
-                <Tooltip cursor={{ fill: '#374151' }} contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
-                <Bar dataKey="avg_requests" fill="#8B5CF6" radius={[4, 4, 0, 0]} name="Avg Requests" />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex h-full items-center justify-center text-gray-500">
-              No height data available.
-            </div>
-          )}
-        </ChartCard>
-      </div>
+        <div className="mb-8">
+          <SectionHeader
+            title="User Distribution"
+            description="How users are distributed across the available demographic categories."
+          />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <ChartCard title="Users by Age Group">
+              {errors.usersByAgeGroup ? (
+                <div className="flex h-full items-center justify-center text-red-500">Failed to load age group distribution.</div>
+              ) : usersByAgeGroupData.length > 0 ? (
+                <ResponsiveContainer>
+                  <BarChart data={usersByAgeGroupData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis dataKey="age_group" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                    <YAxis stroke="#9CA3AF" />
+                    <Tooltip cursor={{ fill: '#374151' }} contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                    <Bar dataKey="users_count" fill="#F59E0B" radius={[4, 4, 0, 0]} name="Users" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex h-full items-center justify-center text-gray-500">
+                  No age group distribution available yet.
+                </div>
+              )}
+            </ChartCard>
+
+            <ChartCard title="Users by Gender">
+              {errors.usersByGender ? (
+                <div className="flex h-full items-center justify-center text-red-500">Failed to load gender distribution.</div>
+              ) : usersByGenderData.length > 0 ? (
+                <ResponsiveContainer>
+                  <BarChart data={usersByGenderData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis dataKey="gender" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                    <YAxis stroke="#9CA3AF" />
+                    <Tooltip cursor={{ fill: '#374151' }} contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                    <Bar dataKey="users_count" fill="#06B6D4" radius={[4, 4, 0, 0]} name="Users" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex h-full items-center justify-center text-gray-500">
+                  No gender distribution available yet.
+                </div>
+              )}
+            </ChartCard>
+
+            <ChartCard title="Users by Weight">
+              {errors.usersByWeight ? (
+                <div className="flex h-full items-center justify-center text-red-500">Failed to load weight distribution.</div>
+              ) : usersByWeightData.length > 0 ? (
+                <ResponsiveContainer>
+                  <BarChart data={usersByWeightData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis dataKey="bucket" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                    <YAxis stroke="#9CA3AF" />
+                    <Tooltip cursor={{ fill: '#374151' }} contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                    <Bar dataKey="users_count" fill="#22C55E" radius={[4, 4, 0, 0]} name="Users" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex h-full items-center justify-center text-gray-500">
+                  No weight distribution available yet.
+                </div>
+              )}
+            </ChartCard>
+
+            <ChartCard title="Users by Height">
+              {errors.usersByHeight ? (
+                <div className="flex h-full items-center justify-center text-red-500">Failed to load height distribution.</div>
+              ) : usersByHeightData.length > 0 ? (
+                <ResponsiveContainer>
+                  <BarChart data={usersByHeightData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis dataKey="bucket" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                    <YAxis stroke="#9CA3AF" />
+                    <Tooltip cursor={{ fill: '#374151' }} contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                    <Bar dataKey="users_count" fill="#A855F7" radius={[4, 4, 0, 0]} name="Users" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex h-full items-center justify-center text-gray-500">
+                  No height distribution available yet.
+                </div>
+              )}
+            </ChartCard>
+          </div>
+        </div>
+
+        <div className="mb-8">
+          <SectionHeader
+            title="Usage by Segment"
+            description="How request volume differs across the same demographic groups."
+          />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <ChartCard title="Usage by Age Group">
+              {errors.ageGroup ? (
+                <div className="flex h-full items-center justify-center text-red-500">Failed to load age group analytics.</div>
+              ) : ageGroupData.length > 0 ? (
+                <ResponsiveContainer>
+                  <BarChart data={ageGroupData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis dataKey="age_group" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                    <YAxis stroke="#9CA3AF" />
+                    <Tooltip cursor={{ fill: '#374151' }} contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                    <Bar dataKey="requests_count" fill="#EC4899" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex h-full items-center justify-center text-gray-500">
+                  No age group analytics available yet.
+                </div>
+              )}
+            </ChartCard>
+
+            <ChartCard title="Requests by Gender">
+              {errors.genderInsights ? (
+                <div className="flex h-full items-center justify-center text-red-500">Failed to load gender insights data.</div>
+              ) : data.genderInsights?.length > 0 ? (
+                <ResponsiveContainer>
+                  <BarChart data={data.genderInsights}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis dataKey="gender" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                    <YAxis stroke="#9CA3AF" />
+                    <Tooltip cursor={{ fill: '#374151' }} contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                    <Bar dataKey="avg_requests" fill="#3B82F6" radius={[4, 4, 0, 0]} name="Avg Requests" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex h-full items-center justify-center text-gray-500">
+                  No gender data available.
+                </div>
+              )}
+            </ChartCard>
+
+            <ChartCard title="Requests by Weight">
+              {errors.weightInsights ? (
+                <div className="flex h-full items-center justify-center text-red-500">Failed to load weight insights data.</div>
+              ) : data.weightInsights?.length > 0 ? (
+                <ResponsiveContainer>
+                  <BarChart data={data.weightInsights}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis dataKey="bucket" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                    <YAxis stroke="#9CA3AF" />
+                    <Tooltip cursor={{ fill: '#374151' }} contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                    <Bar dataKey="avg_requests" fill="#10B981" radius={[4, 4, 0, 0]} name="Avg Requests" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex h-full items-center justify-center text-gray-500">
+                  No weight data available.
+                </div>
+              )}
+            </ChartCard>
+
+            <ChartCard title="Requests by Height">
+              {errors.heightInsights ? (
+                <div className="flex h-full items-center justify-center text-red-500">Failed to load height insights data.</div>
+              ) : data.heightInsights?.length > 0 ? (
+                <ResponsiveContainer>
+                  <BarChart data={data.heightInsights}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis dataKey="bucket" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                    <YAxis stroke="#9CA3AF" />
+                    <Tooltip cursor={{ fill: '#374151' }} contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                    <Bar dataKey="avg_requests" fill="#8B5CF6" radius={[4, 4, 0, 0]} name="Avg Requests" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex h-full items-center justify-center text-gray-500">
+                  No height data available.
+                </div>
+              )}
+            </ChartCard>
+          </div>
+        </div>
+      </>
       )}
       {activeTab === 'system' && (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
