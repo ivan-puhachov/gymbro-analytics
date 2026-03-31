@@ -57,6 +57,59 @@ const UsageMetricsTooltip = ({ active, payload, label, labelKey }) => {
   );
 };
 
+const COMPARISON_DIMENSION_LABELS = {
+  age: 'Age',
+  gender: 'Gender',
+  weight: 'Weight',
+  height: 'Height',
+};
+
+const COMPARISON_METRIC_LABELS = {
+  requests_count: 'Requests',
+  avg_requests: 'Avg Requests',
+};
+
+const SegmentComparisonCard = ({ comparison }) => (
+  <div className="bg-gray-800 p-5 rounded-xl border border-gray-700 shadow-sm">
+    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+      {COMPARISON_DIMENSION_LABELS[comparison.dimension] || comparison.dimension}
+    </p>
+    <div className="space-y-3 mt-4 text-sm">
+      <div className="flex items-start justify-between gap-4">
+        <span className="text-gray-400">Top segment</span>
+        <span className="text-right text-white font-medium">
+          {comparison.top_segment} ({formatMetricValue(comparison.top_value)})
+        </span>
+      </div>
+      <div className="flex items-start justify-between gap-4">
+        <span className="text-gray-400">Bottom segment</span>
+        <span className="text-right text-white font-medium">
+          {comparison.bottom_segment} ({formatMetricValue(comparison.bottom_value)})
+        </span>
+      </div>
+      <div className="flex items-start justify-between gap-4">
+        <span className="text-gray-400">Metric</span>
+        <span className="text-right text-white font-medium">
+          {COMPARISON_METRIC_LABELS[comparison.metric] || comparison.metric}
+        </span>
+      </div>
+      <div className="flex items-start justify-between gap-4">
+        <span className="text-gray-400">Gap</span>
+        <span className="text-right text-white font-medium">
+          {formatMetricValue(comparison.absolute_gap)}
+        </span>
+      </div>
+      <div className="flex items-start justify-between gap-4">
+        <span className="text-gray-400">Difference %</span>
+        <span className="text-right text-white font-medium">
+          {formatMetricValue(comparison.relative_gap_percent, { suffix: '%' })}
+        </span>
+      </div>
+    </div>
+    <p className="text-sm text-gray-400 mt-4">{comparison.summary}</p>
+  </div>
+);
+
 
 const NAV_ITEMS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -120,6 +173,7 @@ export default function DashboardScreen() {
           engagement: api.getReport('engagement', token),
           eventsBreakdown: api.getAnalytics('events/breakdown', token, queryParams),
           usageSummary: api.getAnalytics('usage-summary', token, demographicsQueryParams),
+          segmentComparison: api.getAnalytics('segment-comparison', token, demographicsQueryParams),
           ageGroup: api.getAnalytics('by-age-group', token, demographicsQueryParams),
           timeRange: api.getAnalytics('by-time-range', token, queryParams),
           genderInsights: api.getAnalytics('by-gender', token, demographicsQueryParams),
@@ -160,6 +214,7 @@ export default function DashboardScreen() {
           engagement: results.engagement.status === 'rejected',
           eventsBreakdown: results.eventsBreakdown.status === 'rejected',
           usageSummary: results.usageSummary.status === 'rejected',
+          segmentComparison: results.segmentComparison.status === 'rejected',
           ageGroup: results.ageGroup.status === 'rejected',
           timeRange: results.timeRange.status === 'rejected',
           genderInsights: results.genderInsights.status === 'rejected',
@@ -188,6 +243,7 @@ export default function DashboardScreen() {
             avg_tokens: 0,
             avg_response_time: 0,
           }),
+          segmentComparison: safeData(results.segmentComparison, { comparisons: [] }),
           ageGroup: safeData(results.ageGroup, []),
           timeRange: safeData(results.timeRange, []),
           genderInsights: safeData(results.genderInsights, []),
@@ -270,6 +326,7 @@ export default function DashboardScreen() {
     { key: 'avg_tokens', title: 'Avg Tokens', value: formatMetricValue(usageSummary.avg_tokens), subtitle: 'Per request' },
     { key: 'avg_response_time', title: 'Avg Response Time', value: formatMetricValue(usageSummary.avg_response_time, { suffix: ' ms' }), subtitle: 'Per request' },
   ];
+  const segmentComparisons = Array.isArray(data.segmentComparison?.comparisons) ? data.segmentComparison.comparisons : [];
   const profileCompleteness = data.profileCompleteness || {
     total_users: 0,
     age_filled: 0,
@@ -644,6 +701,31 @@ export default function DashboardScreen() {
               )}
             </ChartCard>
           </div>
+        </div>
+
+        <div className="mb-8">
+          <SectionHeader
+            title="Segment Comparison"
+            description="A direct comparison of usage differences between the most and least active demographic segments."
+          />
+          {errors.segmentComparison ? (
+            <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-sm text-red-500">
+              Failed to load segment comparison data.
+            </div>
+          ) : segmentComparisons.length > 0 ? (
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              {segmentComparisons.map((comparison) => (
+                <SegmentComparisonCard
+                  key={`${comparison.dimension}-${comparison.metric}`}
+                  comparison={comparison}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-sm text-gray-400">
+              Not enough segment data for comparison yet.
+            </div>
+          )}
         </div>
 
         <div className="mb-8">
