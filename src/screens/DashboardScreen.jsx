@@ -28,6 +28,35 @@ const MetricCard = ({ title, value, subtitle }) => (
   </div>
 );
 
+const formatMetricValue = (value, { suffix = '', maximumFractionDigits = 1 } = {}) => {
+  const numericValue = Number(value ?? 0);
+  const safeValue = Number.isFinite(numericValue) ? numericValue : 0;
+  const minimumFractionDigits = Number.isInteger(safeValue) ? 0 : Math.min(1, maximumFractionDigits);
+
+  return `${safeValue.toLocaleString(undefined, {
+    minimumFractionDigits,
+    maximumFractionDigits,
+  })}${suffix}`;
+};
+
+const UsageMetricsTooltip = ({ active, payload, label, labelKey }) => {
+  if (!active || !payload?.length) return null;
+
+  const point = payload[0]?.payload || {};
+  const labelValue = point[labelKey] || label || 'Unknown';
+
+  return (
+    <div className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 shadow-lg">
+      <p className="text-sm font-semibold text-white mb-2">{labelValue}</p>
+      <div className="space-y-1 text-sm text-gray-300">
+        <p>Requests: {formatMetricValue(point.requests_count)}</p>
+        <p>Avg Tokens: {formatMetricValue(point.avg_tokens)}</p>
+        <p>Avg Response Time: {formatMetricValue(point.avg_response_time ?? point.avg_response_time_ms, { suffix: ' ms' })}</p>
+      </div>
+    </div>
+  );
+};
+
 
 const NAV_ITEMS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -90,6 +119,7 @@ export default function DashboardScreen() {
           hourly: api.getReport('hourly-activity', token),
           engagement: api.getReport('engagement', token),
           eventsBreakdown: api.getAnalytics('events/breakdown', token, queryParams),
+          usageSummary: api.getAnalytics('usage-summary', token, demographicsQueryParams),
           ageGroup: api.getAnalytics('by-age-group', token, demographicsQueryParams),
           timeRange: api.getAnalytics('by-time-range', token, queryParams),
           genderInsights: api.getAnalytics('by-gender', token, demographicsQueryParams),
@@ -129,6 +159,7 @@ export default function DashboardScreen() {
           hourly: results.hourly.status === 'rejected',
           engagement: results.engagement.status === 'rejected',
           eventsBreakdown: results.eventsBreakdown.status === 'rejected',
+          usageSummary: results.usageSummary.status === 'rejected',
           ageGroup: results.ageGroup.status === 'rejected',
           timeRange: results.timeRange.status === 'rejected',
           genderInsights: results.genderInsights.status === 'rejected',
@@ -150,6 +181,13 @@ export default function DashboardScreen() {
           hourly: safeData(results.hourly, []),
           engagement: safeData(results.engagement, []),
           eventsBreakdown: safeData(results.eventsBreakdown, { breakdown: [] }),
+          usageSummary: safeData(results.usageSummary, {
+            total_requests: 0,
+            active_users: 0,
+            avg_requests_per_user: 0,
+            avg_tokens: 0,
+            avg_response_time: 0,
+          }),
           ageGroup: safeData(results.ageGroup, []),
           timeRange: safeData(results.timeRange, []),
           genderInsights: safeData(results.genderInsights, []),
@@ -211,10 +249,27 @@ export default function DashboardScreen() {
     .map(d => ({ ...d, short_type: d.event_type.replace('sleep.', '') }));
 
   const ageGroupData = data.ageGroup?.map(d => ({ ...d, age_group: d.age_group || 'Unknown' })) || [];
+  const genderInsightsData = data.genderInsights?.map(d => ({ ...d, gender: d.gender || 'Unknown' })) || [];
+  const weightInsightsData = data.weightInsights || [];
+  const heightInsightsData = data.heightInsights || [];
   const usersByAgeGroupData = data.usersByAgeGroup?.map(d => ({ ...d, age_group: d.age_group || 'Unknown' })) || [];
   const usersByGenderData = data.usersByGender?.map(d => ({ ...d, gender: d.gender || 'Unknown' })) || [];
   const usersByWeightData = data.usersByWeight || [];
   const usersByHeightData = data.usersByHeight || [];
+  const usageSummary = data.usageSummary || {
+    total_requests: 0,
+    active_users: 0,
+    avg_requests_per_user: 0,
+    avg_tokens: 0,
+    avg_response_time: 0,
+  };
+  const usageOverviewMetrics = [
+    { key: 'total_requests', title: 'Total Requests', value: formatMetricValue(usageSummary.total_requests, { maximumFractionDigits: 0 }), subtitle: 'Selected date range' },
+    { key: 'active_users', title: 'Active Users', value: formatMetricValue(usageSummary.active_users, { maximumFractionDigits: 0 }), subtitle: 'Non-admin requesters' },
+    { key: 'avg_requests_per_user', title: 'Avg Requests per User', value: formatMetricValue(usageSummary.avg_requests_per_user), subtitle: 'Across active users' },
+    { key: 'avg_tokens', title: 'Avg Tokens', value: formatMetricValue(usageSummary.avg_tokens), subtitle: 'Per request' },
+    { key: 'avg_response_time', title: 'Avg Response Time', value: formatMetricValue(usageSummary.avg_response_time, { suffix: ' ms' }), subtitle: 'Per request' },
+  ];
   const profileCompleteness = data.profileCompleteness || {
     total_users: 0,
     age_filled: 0,
@@ -445,6 +500,29 @@ export default function DashboardScreen() {
       <>
         <div className="mb-8">
           <SectionHeader
+            title="Usage Overview"
+            description="Global request activity for the selected date range."
+          />
+          {errors.usageSummary ? (
+            <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-sm text-red-500">
+              Failed to load usage summary data.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
+              {usageOverviewMetrics.map((metric) => (
+                <MetricCard
+                  key={metric.key}
+                  title={metric.title}
+                  value={metric.value}
+                  subtitle={metric.subtitle}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="mb-8">
+          <SectionHeader
             title="Profile Completeness"
             description="How much profile information non-admin users have filled in."
           />
@@ -583,8 +661,8 @@ export default function DashboardScreen() {
                     <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                     <XAxis dataKey="age_group" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
                     <YAxis stroke="#9CA3AF" />
-                    <Tooltip cursor={{ fill: '#374151' }} contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
-                    <Bar dataKey="requests_count" fill="#EC4899" radius={[4, 4, 0, 0]} />
+                    <Tooltip cursor={{ fill: '#374151' }} content={<UsageMetricsTooltip labelKey="age_group" />} />
+                    <Bar dataKey="requests_count" fill="#EC4899" radius={[4, 4, 0, 0]} name="Requests" />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
@@ -597,13 +675,13 @@ export default function DashboardScreen() {
             <ChartCard title="Requests by Gender">
               {errors.genderInsights ? (
                 <div className="flex h-full items-center justify-center text-red-500">Failed to load gender insights data.</div>
-              ) : data.genderInsights?.length > 0 ? (
+              ) : genderInsightsData.length > 0 ? (
                 <ResponsiveContainer>
-                  <BarChart data={data.genderInsights}>
+                  <BarChart data={genderInsightsData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                     <XAxis dataKey="gender" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
                     <YAxis stroke="#9CA3AF" />
-                    <Tooltip cursor={{ fill: '#374151' }} contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                    <Tooltip cursor={{ fill: '#374151' }} content={<UsageMetricsTooltip labelKey="gender" />} />
                     <Bar dataKey="avg_requests" fill="#3B82F6" radius={[4, 4, 0, 0]} name="Avg Requests" />
                   </BarChart>
                 </ResponsiveContainer>
@@ -617,13 +695,13 @@ export default function DashboardScreen() {
             <ChartCard title="Requests by Weight">
               {errors.weightInsights ? (
                 <div className="flex h-full items-center justify-center text-red-500">Failed to load weight insights data.</div>
-              ) : data.weightInsights?.length > 0 ? (
+              ) : weightInsightsData.length > 0 ? (
                 <ResponsiveContainer>
-                  <BarChart data={data.weightInsights}>
+                  <BarChart data={weightInsightsData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                     <XAxis dataKey="bucket" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
                     <YAxis stroke="#9CA3AF" />
-                    <Tooltip cursor={{ fill: '#374151' }} contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                    <Tooltip cursor={{ fill: '#374151' }} content={<UsageMetricsTooltip labelKey="bucket" />} />
                     <Bar dataKey="avg_requests" fill="#10B981" radius={[4, 4, 0, 0]} name="Avg Requests" />
                   </BarChart>
                 </ResponsiveContainer>
@@ -637,13 +715,13 @@ export default function DashboardScreen() {
             <ChartCard title="Requests by Height">
               {errors.heightInsights ? (
                 <div className="flex h-full items-center justify-center text-red-500">Failed to load height insights data.</div>
-              ) : data.heightInsights?.length > 0 ? (
+              ) : heightInsightsData.length > 0 ? (
                 <ResponsiveContainer>
-                  <BarChart data={data.heightInsights}>
+                  <BarChart data={heightInsightsData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                     <XAxis dataKey="bucket" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
                     <YAxis stroke="#9CA3AF" />
-                    <Tooltip cursor={{ fill: '#374151' }} contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }} />
+                    <Tooltip cursor={{ fill: '#374151' }} content={<UsageMetricsTooltip labelKey="bucket" />} />
                     <Bar dataKey="avg_requests" fill="#8B5CF6" radius={[4, 4, 0, 0]} name="Avg Requests" />
                   </BarChart>
                 </ResponsiveContainer>
