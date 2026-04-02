@@ -179,7 +179,6 @@ export default function DashboardScreen() {
           genderInsights: api.getAnalytics('by-gender', token, demographicsQueryParams),
           weightInsights: api.getAnalytics('by-weight-bucket', token, demographicsQueryParams),
           heightInsights: api.getAnalytics('by-height-bucket', token, demographicsQueryParams),
-          profileCompleteness: api.getAnalytics('profile-completeness', token),
           usersByAgeGroup: api.getAnalytics('users-by-age-group', token),
           usersByGender: api.getAnalytics('users-by-gender', token),
           usersByWeight: api.getAnalytics('users-by-weight-bucket', token),
@@ -220,7 +219,6 @@ export default function DashboardScreen() {
           genderInsights: results.genderInsights.status === 'rejected',
           weightInsights: results.weightInsights.status === 'rejected',
           heightInsights: results.heightInsights.status === 'rejected',
-          profileCompleteness: results.profileCompleteness.status === 'rejected',
           usersByAgeGroup: results.usersByAgeGroup.status === 'rejected',
           usersByGender: results.usersByGender.status === 'rejected',
           usersByWeight: results.usersByWeight.status === 'rejected',
@@ -249,14 +247,6 @@ export default function DashboardScreen() {
           genderInsights: safeData(results.genderInsights, []),
           weightInsights: safeData(results.weightInsights, []),
           heightInsights: safeData(results.heightInsights, []),
-          profileCompleteness: safeData(results.profileCompleteness, {
-            total_users: 0,
-            age_filled: 0,
-            gender_filled: 0,
-            weight_filled: 0,
-            height_filled: 0,
-            about_me_filled: 0,
-          }),
           usersByAgeGroup: safeData(results.usersByAgeGroup, []),
           usersByGender: safeData(results.usersByGender, []),
           usersByWeight: safeData(results.usersByWeight, []),
@@ -327,23 +317,6 @@ export default function DashboardScreen() {
     { key: 'avg_response_time', title: 'Avg Response Time', value: formatMetricValue(usageSummary.avg_response_time, { suffix: ' ms' }), subtitle: 'Per request' },
   ];
   const segmentComparisons = Array.isArray(data.segmentComparison?.comparisons) ? data.segmentComparison.comparisons : [];
-  const profileCompleteness = data.profileCompleteness || {
-    total_users: 0,
-    age_filled: 0,
-    gender_filled: 0,
-    weight_filled: 0,
-    height_filled: 0,
-    about_me_filled: 0,
-  };
-  const totalProfileUsers = profileCompleteness.total_users || 0;
-  const completenessMetrics = [
-    { key: 'total_users', title: 'Total Users', filled: totalProfileUsers, isTotal: true },
-    { key: 'age_filled', title: 'Age Filled', filled: profileCompleteness.age_filled || 0 },
-    { key: 'gender_filled', title: 'Gender Filled', filled: profileCompleteness.gender_filled || 0 },
-    { key: 'weight_filled', title: 'Weight Filled', filled: profileCompleteness.weight_filled || 0 },
-    { key: 'height_filled', title: 'Height Filled', filled: profileCompleteness.height_filled || 0 },
-    { key: 'about_me_filled', title: 'About Me Filled', filled: profileCompleteness.about_me_filled || 0 },
-  ];
 
   const timeRangeList = data.timeRange?.timeline || data.timeRange || [];
   const timeRangeData = Array.isArray(timeRangeList) ? timeRangeList.map(d => ({
@@ -574,43 +547,6 @@ export default function DashboardScreen() {
                   subtitle={metric.subtitle}
                 />
               ))}
-            </div>
-          )}
-        </div>
-
-        <div className="mb-8">
-          <SectionHeader
-            title="Profile Completeness"
-            description="How much profile information non-admin users have filled in."
-          />
-          {errors.profileCompleteness ? (
-            <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-sm text-red-500">
-              Failed to load profile completeness data.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {completenessMetrics.map((metric) => {
-                if (metric.isTotal) {
-                  return (
-                    <MetricCard
-                      key={metric.key}
-                      title={metric.title}
-                      value={metric.filled}
-                      subtitle="Non-admin profiles"
-                    />
-                  );
-                }
-
-                const percent = totalProfileUsers > 0 ? Math.round((metric.filled / totalProfileUsers) * 100) : 0;
-                return (
-                  <MetricCard
-                    key={metric.key}
-                    title={metric.title}
-                    value={`${metric.filled} / ${totalProfileUsers}`}
-                    subtitle={`${percent}% complete`}
-                  />
-                );
-              })}
             </div>
           )}
         </div>
