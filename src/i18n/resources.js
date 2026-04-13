@@ -579,4 +579,398 @@ const resources = {
   },
 };
 
+resources.en.dashboard = {
+  ...resources.en.dashboard,
+  navigation: {
+    ...resources.en.dashboard.navigation,
+    analytics: 'Analytics',
+  },
+  telemetry: {
+    ...resources.en.dashboard.telemetry,
+    overview: {
+      title: 'Diagnostics Overview',
+      description: 'Operational activity and instrumentation health from the current hourly report window.',
+      metrics: {
+        telemetryEvents: {
+          title: 'Telemetry Events',
+          subtitle: 'Current report window',
+        },
+        frontendEvents: {
+          title: 'Frontend Events',
+          subtitle: 'Logged by client API',
+        },
+        backendEvents: {
+          title: 'Backend Events',
+          subtitle: 'Logged by backend services',
+        },
+        aiSuccess: {
+          title: 'AI Successes',
+          subtitle: 'Completed AI requests',
+        },
+      },
+    },
+    charts: {
+      ...resources.en.dashboard.telemetry.charts,
+      hourly: 'Hourly Activity Diagnostics',
+      hourlyDescription: 'Current hourly report window in Tallinn time. This report does not strictly follow the dashboard date filters.',
+    },
+    empty: {
+      ...resources.en.dashboard.telemetry.empty,
+      hourly: 'No hourly diagnostic data available yet.',
+    },
+  },
+  demographics: {
+    ...resources.en.dashboard.demographics,
+    metricToggleLabel: 'Segment metric',
+    metricOptions: {
+      requests: 'Requests',
+      avgTokens: 'Avg Tokens',
+      avgResponseTime: 'Avg Response Time',
+    },
+    usageBySegment: {
+      ...resources.en.dashboard.demographics.usageBySegment,
+      description: 'Switch between request volume, average tokens, and average response time for the selected date range.',
+      charts: {
+        age: 'Age Groups by {{metric}}',
+        gender: 'Gender by {{metric}}',
+        weight: 'Weight by {{metric}}',
+        height: 'Height by {{metric}}',
+      },
+    },
+  },
+  analytics: {
+    usageOverview: {
+      title: 'Usage Overview',
+      description: 'Core AI usage KPIs for the selected date range.',
+      error: 'Failed to load usage overview data.',
+      metrics: {
+        totalRequests: {
+          title: 'Total AI Requests',
+          subtitle: 'Selected date range',
+        },
+        activeUsers: {
+          title: 'Active AI Users',
+          subtitle: 'Range-aware requesters',
+        },
+        requestsPerActiveUser: {
+          title: 'Requests per Active User',
+          subtitle: 'Across active AI users',
+        },
+        avgTokensPerRequest: {
+          title: 'Avg Tokens per Request',
+          subtitle: 'Selected date range',
+        },
+        avgResponseTime: {
+          title: 'Avg Response Time',
+          subtitle: 'Selected date range',
+        },
+        totalOnboardedUsers: {
+          title: 'Total Onboarded Users',
+          subtitle: 'All-time onboarded users',
+          subtitleFallback: 'Fallback from onboarding funnel report',
+        },
+      },
+    },
+    usageTrends: {
+      title: 'Usage Trends',
+      description: 'Switch between requests, tokens, and average response time for the selected date range.',
+      metricToggleLabel: 'Trend metric',
+      chartTitle: '{{metric}} over Time',
+      error: 'Failed to load usage trend data.',
+      empty: 'No trend data available for this range.',
+      metrics: {
+        requests: 'Requests',
+        tokens: 'Tokens',
+        avgResponseTime: 'Avg Response Time',
+      },
+    },
+    userIntensity: {
+      title: 'User Intensity',
+      description: 'Current /reports/users snapshot of the most active AI users. This section does not strictly follow the dashboard date filters.',
+      charts: {
+        intensity: 'Top Users by Request Volume',
+      },
+      table: {
+        title: 'Top Users',
+        description: 'Requests, sessions, tokens, response time, and rate-limit pressure by user.',
+        headers: {
+          user: 'User',
+          requests: 'Requests',
+          sessions: 'Sessions',
+          totalTokens: 'Total Tokens',
+          avgResponseTime: 'Avg Response Time',
+          rateLimits: 'Rate Limits',
+        },
+      },
+      errors: {
+        users: 'Failed to load user reports.',
+      },
+      empty: {
+        users: 'No user usage data available yet.',
+      },
+    },
+    adoption: {
+      title: 'Adoption & Conversion',
+      description: 'How onboarding completion relates to later AI usage.',
+      metrics: {
+        totalOnboardedUsers: {
+          title: 'Total Onboarded Users',
+          subtitle: 'All-time onboarding completions',
+        },
+        onboardedInRange: {
+          title: 'Onboarded in Range',
+          subtitle: 'Based on onboarding completion date',
+        },
+        zeroUsage: {
+          title: 'Zero AI Usage',
+          subtitle: 'Onboarded users with no AI requests',
+        },
+        avgRequestsPerOnboarded: {
+          title: 'Avg Requests per Onboarded User',
+          subtitle: 'Current all-time user usage snapshot',
+        },
+      },
+      charts: {
+        onboardedOverTime: 'Onboarded Users over Time',
+        onboardedOverTimeDescription: 'Grouped from the existing onboarded users list by onboarding completion date.',
+        onboardedSeries: 'Onboarded Users',
+      },
+      errors: {
+        onboarded: 'Failed to load onboarded users.',
+      },
+      empty: {
+        onboarded: 'No onboarded users found in the selected range.',
+      },
+    },
+    engagement: {
+      title: 'Engagement vs AI Usage',
+      description: 'Compare meals/training engagement events with AI request activity. This section uses current report snapshots rather than the visible date filters.',
+      metrics: {
+        engagedAvgRequests: {
+          title: 'Avg Requests for Engaged Users',
+          subtitle: 'Users with meals or training events',
+        },
+        noEngagementAvgRequests: {
+          title: 'Avg Requests with No Engagement',
+          subtitle: 'Users with zero meals and training events',
+        },
+        overlapUsers: {
+          title: 'Users with Both Signals',
+          subtitle: 'Users with engagement events and AI requests',
+        },
+      },
+      charts: {
+        scatter: 'Engagement vs AI Requests',
+      },
+      axis: {
+        engagement: 'Engagement Events',
+        requests: 'AI Requests',
+      },
+      errors: {
+        engagement: 'Failed to load engagement comparison data.',
+      },
+      empty: {
+        engagement: 'Not enough engagement and AI usage data for comparison yet.',
+      },
+    },
+  },
+};
+
+resources.ru.dashboard = {
+  ...resources.ru.dashboard,
+  navigation: {
+    ...resources.ru.dashboard.navigation,
+    analytics: 'Аналитика',
+  },
+  telemetry: {
+    ...resources.ru.dashboard.telemetry,
+    overview: {
+      title: 'Диагностический обзор',
+      description: 'Операционная активность и состояние инструментирования по текущему почасовому окну отчета.',
+      metrics: {
+        telemetryEvents: {
+          title: 'События телеметрии',
+          subtitle: 'Текущее окно отчета',
+        },
+        frontendEvents: {
+          title: 'Frontend-события',
+          subtitle: 'Логи клиентского API',
+        },
+        backendEvents: {
+          title: 'Backend-события',
+          subtitle: 'Логи сервисов бэкенда',
+        },
+        aiSuccess: {
+          title: 'Успешные AI-запросы',
+          subtitle: 'Завершенные AI-запросы',
+        },
+      },
+    },
+    charts: {
+      ...resources.ru.dashboard.telemetry.charts,
+      hourly: 'Почасовая диагностика активности',
+      hourlyDescription: 'Текущее почасовое окно отчета по времени Таллина. Этот отчет не следует строго выбранному диапазону дат.',
+    },
+    empty: {
+      ...resources.ru.dashboard.telemetry.empty,
+      hourly: 'Почасовые диагностические данные пока отсутствуют.',
+    },
+  },
+  demographics: {
+    ...resources.ru.dashboard.demographics,
+    metricToggleLabel: 'Метрика сегмента',
+    metricOptions: {
+      requests: 'Запросы',
+      avgTokens: 'Средние токены',
+      avgResponseTime: 'Среднее время ответа',
+    },
+    usageBySegment: {
+      ...resources.ru.dashboard.demographics.usageBySegment,
+      description: 'Переключайтесь между объемом запросов, средними токенами и средним временем ответа для выбранного диапазона дат.',
+      charts: {
+        age: 'Возрастные группы по метрике {{metric}}',
+        gender: 'Пол по метрике {{metric}}',
+        weight: 'Весовые группы по метрике {{metric}}',
+        height: 'Ростовые группы по метрике {{metric}}',
+      },
+    },
+  },
+  analytics: {
+    usageOverview: {
+      title: 'Обзор использования',
+      description: 'Ключевые AI-метрики для выбранного диапазона дат.',
+      error: 'Не удалось загрузить обзор использования.',
+      metrics: {
+        totalRequests: {
+          title: 'Всего AI-запросов',
+          subtitle: 'Выбранный диапазон дат',
+        },
+        activeUsers: {
+          title: 'Активные AI-пользователи',
+          subtitle: 'Пользователи с запросами в диапазоне',
+        },
+        requestsPerActiveUser: {
+          title: 'Запросов на активного пользователя',
+          subtitle: 'Среди активных AI-пользователей',
+        },
+        avgTokensPerRequest: {
+          title: 'Средние токены на запрос',
+          subtitle: 'Выбранный диапазон дат',
+        },
+        avgResponseTime: {
+          title: 'Среднее время ответа',
+          subtitle: 'Выбранный диапазон дат',
+        },
+        totalOnboardedUsers: {
+          title: 'Всего пользователей с онбордингом',
+          subtitle: 'Все пользователи с завершенным онбордингом',
+          subtitleFallback: 'Резервное значение из отчета по воронке онбординга',
+        },
+      },
+    },
+    usageTrends: {
+      title: 'Динамика использования',
+      description: 'Переключайтесь между запросами, токенами и средним временем ответа для выбранного диапазона дат.',
+      metricToggleLabel: 'Метрика тренда',
+      chartTitle: '{{metric}} во времени',
+      error: 'Не удалось загрузить данные динамики использования.',
+      empty: 'Для выбранного диапазона данные тренда отсутствуют.',
+      metrics: {
+        requests: 'Запросы',
+        tokens: 'Токены',
+        avgResponseTime: 'Среднее время ответа',
+      },
+    },
+    userIntensity: {
+      title: 'Интенсивность пользователей',
+      description: 'Текущий снимок /reports/users по самым активным AI-пользователям. Этот раздел не следует строго выбранному диапазону дат.',
+      charts: {
+        intensity: 'Топ пользователей по числу запросов',
+      },
+      table: {
+        title: 'Топ пользователей',
+        description: 'Запросы, сессии, токены, время ответа и превышения лимита по пользователям.',
+        headers: {
+          user: 'Пользователь',
+          requests: 'Запросы',
+          sessions: 'Сессии',
+          totalTokens: 'Всего токенов',
+          avgResponseTime: 'Среднее время ответа',
+          rateLimits: 'Лимиты',
+        },
+      },
+      errors: {
+        users: 'Не удалось загрузить пользовательские отчеты.',
+      },
+      empty: {
+        users: 'Данные по использованию пользователей пока отсутствуют.',
+      },
+    },
+    adoption: {
+      title: 'Активация и конверсия',
+      description: 'Как завершение онбординга связано с последующим AI-использованием.',
+      metrics: {
+        totalOnboardedUsers: {
+          title: 'Всего пользователей с онбордингом',
+          subtitle: 'Все завершения онбординга',
+        },
+        onboardedInRange: {
+          title: 'Онбординг в диапазоне',
+          subtitle: 'По дате завершения онбординга',
+        },
+        zeroUsage: {
+          title: 'Без AI-использования',
+          subtitle: 'Пользователи с онбордингом без AI-запросов',
+        },
+        avgRequestsPerOnboarded: {
+          title: 'Среднее запросов на пользователя',
+          subtitle: 'Текущий all-time снимок использования',
+        },
+      },
+      charts: {
+        onboardedOverTime: 'Пользователи с онбордингом во времени',
+        onboardedOverTimeDescription: 'Группировка текущего списка пользователей с онбордингом по дате завершения.',
+        onboardedSeries: 'Пользователи с онбордингом',
+      },
+      errors: {
+        onboarded: 'Не удалось загрузить пользователей с онбордингом.',
+      },
+      empty: {
+        onboarded: 'В выбранном диапазоне нет пользователей с онбордингом.',
+      },
+    },
+    engagement: {
+      title: 'Вовлеченность и AI-использование',
+      description: 'Сравнение событий meals/training с активностью AI-запросов. Раздел использует текущие снимки отчетов, а не видимые фильтры дат.',
+      metrics: {
+        engagedAvgRequests: {
+          title: 'Среднее запросов у вовлеченных пользователей',
+          subtitle: 'Пользователи с meals или training событиями',
+        },
+        noEngagementAvgRequests: {
+          title: 'Среднее запросов без вовлеченности',
+          subtitle: 'Пользователи без meals и training событий',
+        },
+        overlapUsers: {
+          title: 'Пользователи с обоими сигналами',
+          subtitle: 'Есть и события вовлеченности, и AI-запросы',
+        },
+      },
+      charts: {
+        scatter: 'Вовлеченность vs AI-запросы',
+      },
+      axis: {
+        engagement: 'События вовлеченности',
+        requests: 'AI-запросы',
+      },
+      errors: {
+        engagement: 'Не удалось загрузить данные сравнения вовлеченности.',
+      },
+      empty: {
+        engagement: 'Пока недостаточно данных для сравнения вовлеченности и AI-использования.',
+      },
+    },
+  },
+};
+
 export default resources;

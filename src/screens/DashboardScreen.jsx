@@ -1,8 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, AreaChart, Area } from 'recharts';
-import { LogOut, Activity, Users, Database, ShieldAlert, LayoutDashboard, Cpu } from 'lucide-react';
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Scatter,
+  ScatterChart,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import {
+  Activity,
+  BarChart3,
+  Cpu,
+  Database,
+  LayoutDashboard,
+  LogOut,
+  ShieldAlert,
+  Users,
+} from 'lucide-react';
 import { api } from '../api';
 import LanguageToggle from '../components/LanguageToggle';
 import { formatDate, formatDateTime, formatMetricValue, formatTimelineLabel } from '../utils/formatters';
@@ -14,13 +37,22 @@ import {
   getWeightBucketLabel,
 } from '../utils/analyticsDisplay';
 
-const ChartCard = ({ title, children }) => (
-  <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-sm flex flex-col items-center">
-    <h3 className="text-lg font-semibold text-gray-300 mb-4 self-start leading-snug break-words">{title}</h3>
-    <div className="w-full h-64">
+const ContentCard = ({ title, description, children, className = '' }) => (
+  <div className={`bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-sm ${className}`}>
+    {title && <h3 className="text-lg font-semibold text-gray-300 leading-snug break-words">{title}</h3>}
+    {description && <p className="text-sm text-gray-400 mt-1 leading-relaxed break-words">{description}</p>}
+    <div className={title || description ? 'mt-4' : ''}>
       {children}
     </div>
   </div>
+);
+
+const ChartCard = ({ title, description, children }) => (
+  <ContentCard title={title} description={description} className="flex flex-col items-center">
+    <div className="w-full h-64">
+      {children}
+    </div>
+  </ContentCard>
 );
 
 const SectionHeader = ({ title, description }) => (
@@ -35,6 +67,31 @@ const MetricCard = ({ title, value, subtitle }) => (
     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500 leading-snug break-words">{title}</p>
     <p className="text-2xl font-bold text-white mt-3">{value}</p>
     {subtitle && <p className="text-sm text-gray-400 mt-1 leading-relaxed break-words">{subtitle}</p>}
+  </div>
+);
+
+const MetricToggle = ({ label, options, value, onChange, className = '' }) => (
+  <div className={`flex flex-col gap-2 ${className}`}>
+    <span className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">{label}</span>
+    <div className="inline-flex flex-wrap gap-2 rounded-xl border border-gray-700 bg-gray-800 p-1">
+      {options.map((option) => {
+        const isActive = option.value === value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => onChange(option.value)}
+            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+              isActive
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+            }`}
+          >
+            {option.label}
+          </button>
+        );
+      })}
+    </div>
   </div>
 );
 
@@ -73,6 +130,52 @@ const UsageMetricsTooltip = ({ active, payload, label, labelKey }) => {
           {t('tooltips.usageMetrics.avgResponseTime')}:{' '}
           {formatMetricValue(point.avg_response_time ?? point.avg_response_time_ms, i18n.resolvedLanguage, { suffix: msSuffix })}
         </p>
+      </div>
+    </div>
+  );
+};
+
+const UserIntensityTooltip = ({ active, payload }) => {
+  const { t, i18n } = useTranslation(['dashboard', 'common']);
+
+  if (!active || !payload?.length) return null;
+
+  const point = payload[0]?.payload || {};
+  const language = i18n.resolvedLanguage;
+  const msSuffix = ` ${t('common:units.ms')}`;
+
+  return (
+    <div className="max-w-xs bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 shadow-lg">
+      <p className="text-sm font-semibold text-white mb-2 break-words">
+        {point.email || point.displayLabel || t('common:fallback.unknown')}
+      </p>
+      <div className="space-y-1 text-sm text-gray-300">
+        <p>{t('analytics.userIntensity.table.headers.requests')}: {formatMetricValue(point.requests_count, language, { maximumFractionDigits: 0 })}</p>
+        <p>{t('analytics.userIntensity.table.headers.sessions')}: {formatMetricValue(point.sessions_count, language, { maximumFractionDigits: 0 })}</p>
+        <p>{t('analytics.userIntensity.table.headers.totalTokens')}: {formatMetricValue(point.total_tokens, language, { maximumFractionDigits: 0 })}</p>
+        <p>{t('analytics.userIntensity.table.headers.avgResponseTime')}: {formatMetricValue(point.avg_response_time_ms, language, { suffix: msSuffix })}</p>
+      </div>
+    </div>
+  );
+};
+
+const EngagementScatterTooltip = ({ active, payload }) => {
+  const { t, i18n } = useTranslation(['dashboard', 'common']);
+
+  if (!active || !payload?.length) return null;
+
+  const point = payload[0]?.payload || {};
+  const language = i18n.resolvedLanguage;
+
+  return (
+    <div className="max-w-xs bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 shadow-lg">
+      <p className="text-sm font-semibold text-white mb-2 break-words">
+        {point.email || point.displayLabel || t('common:fallback.unknown')}
+      </p>
+      <div className="space-y-1 text-sm text-gray-300">
+        <p>{t('analytics.engagement.axis.engagement')}: {formatMetricValue(point.engagement_total, language, { maximumFractionDigits: 0 })}</p>
+        <p>{t('analytics.engagement.axis.requests')}: {formatMetricValue(point.requests_count, language, { maximumFractionDigits: 0 })}</p>
+        <p>{t('analytics.userIntensity.table.headers.sessions')}: {formatMetricValue(point.sessions_count, language, { maximumFractionDigits: 0 })}</p>
       </div>
     </div>
   );
@@ -144,13 +247,50 @@ const SegmentComparisonCard = ({ comparison }) => {
   );
 };
 
-
 const NAV_ITEMS = [
   { id: 'overview', labelKey: 'navigation.overview', icon: LayoutDashboard },
-  { id: 'telemetry', labelKey: 'navigation.telemetry', icon: Activity },
+  { id: 'analytics', labelKey: 'navigation.analytics', icon: BarChart3 },
   { id: 'demographics', labelKey: 'navigation.demographics', icon: Users },
+  { id: 'telemetry', labelKey: 'navigation.telemetry', icon: Activity },
   { id: 'system', labelKey: 'navigation.system', icon: Cpu },
 ];
+
+function getValidNumber(value) {
+  const numericValue = Number(value ?? 0);
+  return Number.isFinite(numericValue) ? numericValue : 0;
+}
+
+function getUserDisplayLabel(email, fallback) {
+  const normalizedEmail = typeof email === 'string' ? email.trim() : '';
+  if (!normalizedEmail) return fallback;
+
+  const [localPart] = normalizedEmail.split('@');
+  if (!localPart) return normalizedEmail;
+
+  return localPart.length > 12 ? `${localPart.slice(0, 12)}…` : localPart;
+}
+
+function extractDateKey(value) {
+  if (typeof value === 'string') {
+    const match = value.match(/^\d{4}-\d{2}-\d{2}/);
+    if (match) return match[0];
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+
+  return parsed.toISOString().slice(0, 10);
+}
+
+function isWithinDateRange(value, startDate, endDate) {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return false;
+
+  const start = new Date(`${startDate}T00:00:00`);
+  const end = new Date(`${endDate}T23:59:59.999`);
+
+  return parsed >= start && parsed <= end;
+}
 
 export default function DashboardScreen() {
   const { t, i18n } = useTranslation(['dashboard', 'common']);
@@ -166,7 +306,8 @@ export default function DashboardScreen() {
   });
   const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [granularity, setGranularity] = useState('day');
-
+  const [analyticsTrendMetric, setAnalyticsTrendMetric] = useState('requests');
+  const [demographicsMetric, setDemographicsMetric] = useState('requests');
   const [modalOpen, setModalOpen] = useState(false);
   const [modalUsers, setModalUsers] = useState([]);
   const [modalLoading, setModalLoading] = useState(false);
@@ -180,9 +321,16 @@ export default function DashboardScreen() {
 
   const handleOnboardedClick = async () => {
     setModalOpen(true);
-    setModalLoading(true);
     setModalError(false);
     setModalSearch('');
+
+    if (Array.isArray(data?.onboardedUsers) && !errors.onboardedUsers) {
+      setModalUsers(data.onboardedUsers);
+      setModalLoading(false);
+      return;
+    }
+
+    setModalLoading(true);
     try {
       const token = localStorage.getItem('admin_token');
       const users = await api.getAnalytics('users/onboarded', token);
@@ -207,8 +355,10 @@ export default function DashboardScreen() {
           onboarding: api.getReport('onboarding', token),
           aiHealth: api.getReport('ai-health', token),
           hourly: api.getReport('hourly-activity', token),
-          engagement: api.getReport('engagement', token),
+          engagement: api.getReport('engagement?limit=1000', token),
+          userReports: api.getReport('users?limit=1000', token),
           usageSummary: api.getAnalytics('usage-summary', token, demographicsQueryParams),
+          onboardedUsers: api.getAnalytics('users/onboarded', token),
           segmentComparison: api.getAnalytics('segment-comparison', token, demographicsQueryParams),
           ageGroup: api.getAnalytics('by-age-group', token, demographicsQueryParams),
           timeRange: api.getAnalytics('by-time-range', token, queryParams),
@@ -223,15 +373,16 @@ export default function DashboardScreen() {
 
         const keys = Object.keys(promiseMap);
         const settledResults = await Promise.allSettled(Object.values(promiseMap));
-        
-        const results = keys.reduce((acc, key, index) => {
-          acc[key] = settledResults[index];
-          return acc;
+
+        const results = keys.reduce((accumulator, key, index) => {
+          accumulator[key] = settledResults[index];
+          return accumulator;
         }, {});
 
-        const hasAuthError = Object.values(results).some((result) =>
-          result.status === 'rejected' &&
-          (result.reason?.status === 401 || result.reason?.status === 403)
+        const hasAuthError = Object.values(results).some(
+          (result) =>
+            result.status === 'rejected' &&
+            (result.reason?.status === 401 || result.reason?.status === 403),
         );
 
         if (hasAuthError) {
@@ -246,7 +397,9 @@ export default function DashboardScreen() {
           aiHealth: results.aiHealth.status === 'rejected',
           hourly: results.hourly.status === 'rejected',
           engagement: results.engagement.status === 'rejected',
+          userReports: results.userReports.status === 'rejected',
           usageSummary: results.usageSummary.status === 'rejected',
+          onboardedUsers: results.onboardedUsers.status === 'rejected',
           segmentComparison: results.segmentComparison.status === 'rejected',
           ageGroup: results.ageGroup.status === 'rejected',
           timeRange: results.timeRange.status === 'rejected',
@@ -259,7 +412,7 @@ export default function DashboardScreen() {
           usersByHeight: results.usersByHeight.status === 'rejected',
         });
 
-        const safeData = (result, defaultVal) => result?.status === 'fulfilled' ? result.value : defaultVal;
+        const safeData = (result, defaultValue) => (result?.status === 'fulfilled' ? result.value : defaultValue);
 
         setData({
           dau: safeData(results.dau, []),
@@ -267,6 +420,7 @@ export default function DashboardScreen() {
           aiHealth: safeData(results.aiHealth, []),
           hourly: safeData(results.hourly, []),
           engagement: safeData(results.engagement, []),
+          userReports: safeData(results.userReports, []),
           usageSummary: safeData(results.usageSummary, {
             total_requests: 0,
             active_users: 0,
@@ -274,6 +428,7 @@ export default function DashboardScreen() {
             avg_tokens: 0,
             avg_response_time: 0,
           }),
+          onboardedUsers: safeData(results.onboardedUsers, []),
           segmentComparison: safeData(results.segmentComparison, { comparisons: [] }),
           ageGroup: safeData(results.ageGroup, []),
           timeRange: safeData(results.timeRange, []),
@@ -291,6 +446,7 @@ export default function DashboardScreen() {
         setLoading(false);
       }
     }
+
     loadData();
   }, [navigate, startDate, endDate, granularity]);
 
@@ -299,8 +455,13 @@ export default function DashboardScreen() {
     navigate('/login');
   };
 
-  if (loading) return <div className="flex h-screen items-center justify-center bg-gray-900 text-white">{t('loading')}</div>;
-  if (!data) return <div className="flex h-screen items-center justify-center bg-gray-900 text-white">{t('loadFailed')}</div>;
+  if (loading) {
+    return <div className="flex h-screen items-center justify-center bg-gray-900 text-white">{t('loading')}</div>;
+  }
+
+  if (!data) {
+    return <div className="flex h-screen items-center justify-center bg-gray-900 text-white">{t('loadFailed')}</div>;
+  }
 
   const unknownLabel = t('common:fallback.unknown');
   const msSuffix = ` ${t('common:units.ms')}`;
@@ -376,6 +537,21 @@ export default function DashboardScreen() {
     avg_response_time: 0,
   };
 
+  const timeRangeList = Array.isArray(data.timeRange?.timeline) ? data.timeRange.timeline : data.timeRange;
+  const timeRangeData = Array.isArray(timeRangeList)
+    ? timeRangeList.map((item) => {
+        const rawDisplayTime = item.bucket || item.timestamp || item.date || item.day || unknownLabel;
+
+        return {
+          ...item,
+          requests_count: getValidNumber(item.requests_count),
+          total_tokens: getValidNumber(item.total_tokens),
+          avg_response_time_ms: getValidNumber(item.avg_response_time_ms),
+          displayTimeLabel: formatTimelineLabel(rawDisplayTime, language, granularity) || unknownLabel,
+        };
+      })
+    : [];
+
   const usageOverviewMetrics = [
     {
       key: 'total_requests',
@@ -409,30 +585,245 @@ export default function DashboardScreen() {
     },
   ];
 
-  const segmentComparisons = Array.isArray(data.segmentComparison?.comparisons) ? data.segmentComparison.comparisons : [];
-  const timeRangeList = data.timeRange?.timeline || data.timeRange || [];
-  const timeRangeData = Array.isArray(timeRangeList)
-    ? timeRangeList.map((item) => {
-        const rawDisplayTime = item.bucket || item.timestamp || item.date || item.day || unknownLabel;
+  const onboardedUsersData = Array.isArray(data.onboardedUsers) ? data.onboardedUsers : [];
+  const userReportsData = (data.userReports || []).map((item) => ({
+    ...item,
+    user_id: String(item.user_id || ''),
+    requests_count: getValidNumber(item.requests_count),
+    sessions_count: getValidNumber(item.sessions_count),
+    total_tokens: getValidNumber(item.total_tokens),
+    avg_response_time_ms: getValidNumber(item.avg_response_time_ms),
+    rate_limit_exceeded_count: getValidNumber(item.rate_limit_exceeded_count),
+    displayLabel: getUserDisplayLabel(item.email, unknownLabel),
+  }));
 
-        return {
-          ...item,
-          displayTimeLabel: formatTimelineLabel(rawDisplayTime, language, granularity) || unknownLabel,
-          metric_value: item.requests_count !== undefined
-            ? item.requests_count
-            : item.total_tokens !== undefined
-              ? item.total_tokens
-              : item.count || 0,
-        };
-      })
-    : [];
+  const engagementRows = (data.engagement || []).map((item) => ({
+    ...item,
+    user_id: String(item.user_id || ''),
+    meals_events_count: getValidNumber(item.meals_events_count),
+    training_events_count: getValidNumber(item.training_events_count),
+  }));
+
+  const engagementMap = new Map(engagementRows.map((item) => [item.user_id, item]));
+  const totalEngagements = engagementRows.reduce(
+    (sum, item) => sum + item.meals_events_count + item.training_events_count,
+    0,
+  );
+
+  const userUsageById = new Map(userReportsData.map((user) => [user.user_id, user]));
+  const onboardedUsersInRange = onboardedUsersData.filter((user) => isWithinDateRange(user.created_at, startDate, endDate));
+  const onboardedUsersWithUsageCount = onboardedUsersData.filter(
+    (user) => getValidNumber(userUsageById.get(String(user.id))?.requests_count) > 0,
+  ).length;
+  const zeroUsageOnboardedCount = Math.max(onboardedUsersData.length - onboardedUsersWithUsageCount, 0);
+  const avgRequestsPerOnboarded = onboardedUsersData.length > 0
+    ? onboardedUsersData.reduce(
+        (sum, user) => sum + getValidNumber(userUsageById.get(String(user.id))?.requests_count),
+        0,
+      ) / onboardedUsersData.length
+    : 0;
+
+  const onboardedTimelineMap = onboardedUsersInRange.reduce((accumulator, user) => {
+    const dateKey = extractDateKey(user.created_at);
+    if (!dateKey) return accumulator;
+    accumulator[dateKey] = (accumulator[dateKey] || 0) + 1;
+    return accumulator;
+  }, {});
+
+  const onboardedTimelineData = Object.entries(onboardedTimelineMap)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([day, count]) => ({
+      day,
+      count,
+      dayLabel: formatDate(day, language, { month: 'short', day: 'numeric' }) || day,
+    }));
+
+  const analyticsTrendOptions = [
+    { value: 'requests', label: t('analytics.usageTrends.metrics.requests') },
+    { value: 'tokens', label: t('analytics.usageTrends.metrics.tokens') },
+    { value: 'avgResponseTime', label: t('analytics.usageTrends.metrics.avgResponseTime') },
+  ];
+
+  const analyticsTrendConfig = {
+    requests: {
+      dataKey: 'requests_count',
+      label: t('analytics.usageTrends.metrics.requests'),
+      color: '#3B82F6',
+      formatOptions: { maximumFractionDigits: 0 },
+    },
+    tokens: {
+      dataKey: 'total_tokens',
+      label: t('analytics.usageTrends.metrics.tokens'),
+      color: '#10B981',
+      formatOptions: { maximumFractionDigits: 0 },
+    },
+    avgResponseTime: {
+      dataKey: 'avg_response_time_ms',
+      label: t('analytics.usageTrends.metrics.avgResponseTime'),
+      color: '#F59E0B',
+      formatOptions: { suffix: msSuffix },
+    },
+  };
+
+  const selectedTrendMetric = analyticsTrendConfig[analyticsTrendMetric];
+  const analyticsTrendData = timeRangeData.map((item) => ({
+    ...item,
+    metric_value: getValidNumber(item[selectedTrendMetric.dataKey]),
+  }));
+  const requestsTrendData = timeRangeData.map((item) => ({
+    ...item,
+    metric_value: item.requests_count,
+  }));
+
+  const topUsersData = userReportsData.slice(0, 10);
+  const userIntensityChartData = topUsersData.slice(0, 8);
+  const engagementComparisonData = userReportsData
+    .map((user) => {
+      const engagement = engagementMap.get(user.user_id);
+      const mealsEventsCount = getValidNumber(engagement?.meals_events_count);
+      const trainingEventsCount = getValidNumber(engagement?.training_events_count);
+
+      return {
+        ...user,
+        meals_events_count: mealsEventsCount,
+        training_events_count: trainingEventsCount,
+        engagement_total: mealsEventsCount + trainingEventsCount,
+      };
+    })
+    .filter((user) => user.engagement_total > 0 || user.requests_count > 0 || user.sessions_count > 0);
+
+  const engagedUsers = engagementComparisonData.filter((user) => user.engagement_total > 0);
+  const noEngagementUsers = engagementComparisonData.filter((user) => user.engagement_total === 0);
+  const usersWithBothSignals = engagementComparisonData.filter(
+    (user) => user.engagement_total > 0 && user.requests_count > 0,
+  ).length;
+  const avgRequestsAmongEngaged = engagedUsers.length > 0
+    ? engagedUsers.reduce((sum, user) => sum + user.requests_count, 0) / engagedUsers.length
+    : 0;
+  const avgRequestsWithoutEngagement = noEngagementUsers.length > 0
+    ? noEngagementUsers.reduce((sum, user) => sum + user.requests_count, 0) / noEngagementUsers.length
+    : 0;
+
+  const totalOnboardedUsersValue = errors.onboardedUsers
+    ? getValidNumber(data.onboarding?.pet_created_users)
+    : onboardedUsersData.length;
+
+  const analyticsOverviewMetrics = [
+    {
+      key: 'totalRequests',
+      title: t('analytics.usageOverview.metrics.totalRequests.title'),
+      value: formatMetricValue(usageSummary.total_requests, language, { maximumFractionDigits: 0 }),
+      subtitle: t('analytics.usageOverview.metrics.totalRequests.subtitle'),
+    },
+    {
+      key: 'activeUsers',
+      title: t('analytics.usageOverview.metrics.activeUsers.title'),
+      value: formatMetricValue(usageSummary.active_users, language, { maximumFractionDigits: 0 }),
+      subtitle: t('analytics.usageOverview.metrics.activeUsers.subtitle'),
+    },
+    {
+      key: 'requestsPerActiveUser',
+      title: t('analytics.usageOverview.metrics.requestsPerActiveUser.title'),
+      value: formatMetricValue(usageSummary.avg_requests_per_user, language),
+      subtitle: t('analytics.usageOverview.metrics.requestsPerActiveUser.subtitle'),
+    },
+    {
+      key: 'avgTokensPerRequest',
+      title: t('analytics.usageOverview.metrics.avgTokensPerRequest.title'),
+      value: formatMetricValue(usageSummary.avg_tokens, language),
+      subtitle: t('analytics.usageOverview.metrics.avgTokensPerRequest.subtitle'),
+    },
+    {
+      key: 'avgResponseTime',
+      title: t('analytics.usageOverview.metrics.avgResponseTime.title'),
+      value: formatMetricValue(usageSummary.avg_response_time, language, { suffix: msSuffix }),
+      subtitle: t('analytics.usageOverview.metrics.avgResponseTime.subtitle'),
+    },
+    {
+      key: 'totalOnboardedUsers',
+      title: t('analytics.usageOverview.metrics.totalOnboardedUsers.title'),
+      value: formatMetricValue(totalOnboardedUsersValue, language, { maximumFractionDigits: 0 }),
+      subtitle: t(
+        errors.onboardedUsers
+          ? 'analytics.usageOverview.metrics.totalOnboardedUsers.subtitleFallback'
+          : 'analytics.usageOverview.metrics.totalOnboardedUsers.subtitle',
+      ),
+    },
+  ];
+
+  const demographicsMetricOptions = [
+    { value: 'requests', label: t('demographics.metricOptions.requests') },
+    { value: 'avgTokens', label: t('demographics.metricOptions.avgTokens') },
+    { value: 'avgResponseTime', label: t('demographics.metricOptions.avgResponseTime') },
+  ];
+
+  const demographicsMetricConfig = {
+    requests: {
+      dataKey: 'requests_count',
+      label: t('demographics.metricOptions.requests'),
+      seriesName: t('chartSeries.requests'),
+    },
+    avgTokens: {
+      dataKey: 'avg_tokens',
+      label: t('demographics.metricOptions.avgTokens'),
+      seriesName: t('tooltips.usageMetrics.avgTokens'),
+    },
+    avgResponseTime: {
+      dataKey: 'avg_response_time',
+      label: t('demographics.metricOptions.avgResponseTime'),
+      seriesName: t('tooltips.usageMetrics.avgResponseTime'),
+    },
+  };
+
+  const selectedDemographicsMetric = demographicsMetricConfig[demographicsMetric];
+  const segmentComparisons = Array.isArray(data.segmentComparison?.comparisons) ? data.segmentComparison.comparisons : [];
+  const telemetryTotals = (data.hourly || []).reduce(
+    (accumulator, item) => ({
+      telemetryEvents: accumulator.telemetryEvents + getValidNumber(item.telemetry_events_count),
+      frontendEvents: accumulator.frontendEvents + getValidNumber(item.frontend_events_count),
+      backendEvents: accumulator.backendEvents + getValidNumber(item.backend_events_count),
+      aiSuccess: accumulator.aiSuccess + getValidNumber(item.ai_success_count),
+    }),
+    {
+      telemetryEvents: 0,
+      frontendEvents: 0,
+      backendEvents: 0,
+      aiSuccess: 0,
+    },
+  );
+
+  const telemetryMetrics = [
+    {
+      key: 'telemetryEvents',
+      title: t('telemetry.overview.metrics.telemetryEvents.title'),
+      value: formatMetricValue(telemetryTotals.telemetryEvents, language, { maximumFractionDigits: 0 }),
+      subtitle: t('telemetry.overview.metrics.telemetryEvents.subtitle'),
+    },
+    {
+      key: 'frontendEvents',
+      title: t('telemetry.overview.metrics.frontendEvents.title'),
+      value: formatMetricValue(telemetryTotals.frontendEvents, language, { maximumFractionDigits: 0 }),
+      subtitle: t('telemetry.overview.metrics.frontendEvents.subtitle'),
+    },
+    {
+      key: 'backendEvents',
+      title: t('telemetry.overview.metrics.backendEvents.title'),
+      value: formatMetricValue(telemetryTotals.backendEvents, language, { maximumFractionDigits: 0 }),
+      subtitle: t('telemetry.overview.metrics.backendEvents.subtitle'),
+    },
+    {
+      key: 'aiSuccess',
+      title: t('telemetry.overview.metrics.aiSuccess.title'),
+      value: formatMetricValue(telemetryTotals.aiSuccess, language, { maximumFractionDigits: 0 }),
+      subtitle: t('telemetry.overview.metrics.aiSuccess.subtitle'),
+    },
+  ];
 
   const activeNavItem = NAV_ITEMS.find((item) => item.id === activeTab);
   const activeTabTitle = activeNavItem ? t(activeNavItem.labelKey) : t('headerFallback');
 
   return (
     <div className="flex h-screen bg-gray-900 overflow-hidden">
-      {/* Sidebar */}
       <aside className="w-64 bg-gray-900 border-r border-gray-800 flex flex-col justify-between shrink-0">
         <div>
           <div className="p-6 flex items-center border-b border-gray-800">
@@ -444,6 +835,7 @@ export default function DashboardScreen() {
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
+
               return (
                 <button
                   key={item.id}
@@ -462,13 +854,15 @@ export default function DashboardScreen() {
           </nav>
         </div>
         <div className="p-4 border-t border-gray-800">
-          <button onClick={handleLogout} className="w-full flex items-center px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
+          >
             <LogOut size={20} className="mr-3 shrink-0" /> {t('common:actions.logout')}
           </button>
         </div>
       </aside>
 
-      {/* Main Content */}
       <main className="flex-1 bg-gray-900 p-8 h-screen overflow-y-auto">
         <header className="mb-8 pb-4 border-b border-gray-800">
           <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">
@@ -479,15 +873,32 @@ export default function DashboardScreen() {
         <div className="flex flex-wrap items-start sm:items-center gap-4 mb-6 p-4 bg-gray-800 rounded-xl border border-gray-700 shadow-sm">
           <div className="flex items-center gap-2">
             <label className="text-gray-400 text-sm font-semibold whitespace-nowrap">{t('filters.startDate')}:</label>
-            <input aria-label={t('filters.startDate')} type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm" />
+            <input
+              aria-label={t('filters.startDate')}
+              type="date"
+              value={startDate}
+              onChange={(event) => setStartDate(event.target.value)}
+              className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm"
+            />
           </div>
           <div className="flex items-center gap-2">
             <label className="text-gray-400 text-sm font-semibold whitespace-nowrap">{t('filters.endDate')}:</label>
-            <input aria-label={t('filters.endDate')} type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm" />
+            <input
+              aria-label={t('filters.endDate')}
+              type="date"
+              value={endDate}
+              onChange={(event) => setEndDate(event.target.value)}
+              className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm"
+            />
           </div>
           <div className="flex items-center gap-2">
             <label className="text-gray-400 text-sm font-semibold whitespace-nowrap">{t('filters.granularity')}:</label>
-            <select aria-label={t('filters.granularity')} value={granularity} onChange={e => setGranularity(e.target.value)} className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm">
+            <select
+              aria-label={t('filters.granularity')}
+              value={granularity}
+              onChange={(event) => setGranularity(event.target.value)}
+              className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm"
+            >
               <option value="hour">{t('filters.options.hour')}</option>
               <option value="day">{t('filters.options.day')}</option>
               <option value="week">{t('filters.options.week')}</option>
@@ -496,160 +907,373 @@ export default function DashboardScreen() {
           </div>
           <LanguageToggle className="w-full justify-center sm:ml-auto sm:w-auto shrink-0" />
         </div>
-
         {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-gray-800 p-6 rounded-xl flex items-center shadow-lg border border-gray-700">
-              <Activity className="text-blue-400 mr-4" size={32} />
-              <div>
-                <p className="text-gray-400">{t('overview.totalEngagements')}</p>
-                <p className="text-2xl font-bold text-white">
-                  {errors.engagement ? (
-                    <span className="text-red-400 text-lg">{t('common:states.error')}</span>
-                  ) : (
-                    formatMetricValue(
-                      (data.engagement || []).reduce(
-                        (sum, item) => sum + parseInt(item.meals_events_count || 0, 10) + parseInt(item.training_events_count || 0, 10),
-                        0,
-                      ),
-                      language,
-                      { maximumFractionDigits: 0 },
-                    )
-                  )}
-                </p>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <div className="bg-gray-800 p-6 rounded-xl flex items-center shadow-lg border border-gray-700">
+                <Activity className="text-blue-400 mr-4" size={32} />
+                <div>
+                  <p className="text-gray-400">{t('overview.totalEngagements')}</p>
+                  <p className="text-2xl font-bold text-white">
+                    {errors.engagement ? (
+                      <span className="text-red-400 text-lg">{t('common:states.error')}</span>
+                    ) : (
+                      formatMetricValue(totalEngagements, language, { maximumFractionDigits: 0 })
+                    )}
+                  </p>
+                </div>
+              </div>
+              <div
+                className="bg-gray-800 p-6 rounded-xl flex items-center shadow-lg border border-gray-700 cursor-pointer hover:bg-gray-700 transition-colors"
+                onClick={handleOnboardedClick}
+              >
+                <Users className="text-emerald-400 mr-4" size={32} />
+                <div>
+                  <p className="text-gray-400">{t('overview.onboardedUsers')}</p>
+                  <p className="text-2xl font-bold text-white">
+                    {errors.onboardedUsers && errors.onboarding ? (
+                      <span className="text-red-400 text-lg">{t('common:states.error')}</span>
+                    ) : (
+                      formatMetricValue(totalOnboardedUsersValue, language, { maximumFractionDigits: 0 })
+                    )}
+                  </p>
+                </div>
+              </div>
+              <div className="bg-gray-800 p-6 rounded-xl flex items-center shadow-lg border border-gray-700">
+                <Database className="text-purple-400 mr-4" size={32} />
+                <div>
+                  <p className="text-gray-400">{t('overview.todayDau')}</p>
+                  <p className="text-2xl font-bold text-white">
+                    {errors.dau ? (
+                      <span className="text-red-400 text-lg">{t('common:states.error')}</span>
+                    ) : (
+                      formatMetricValue(data.dau?.length > 0 ? data.dau[0].active_users_count : 0, language, { maximumFractionDigits: 0 })
+                    )}
+                  </p>
+                </div>
+              </div>
+              <div className="bg-gray-800 p-6 rounded-xl flex items-center shadow-lg border border-gray-700">
+                <ShieldAlert className="text-red-400 mr-4" size={32} />
+                <div>
+                  <p className="text-gray-400">{t('overview.recentApiErrors')}</p>
+                  <p className="text-2xl font-bold text-white">
+                    {errors.aiHealth ? (
+                      <span className="text-red-400 text-lg">{t('common:states.error')}</span>
+                    ) : (
+                      formatMetricValue(data.aiHealth?.length > 0 ? data.aiHealth[0].provider_failures : 0, language, { maximumFractionDigits: 0 })
+                    )}
+                  </p>
+                </div>
               </div>
             </div>
-            <div
-              className="bg-gray-800 p-6 rounded-xl flex items-center shadow-lg border border-gray-700 cursor-pointer hover:bg-gray-700 transition-colors"
-              onClick={handleOnboardedClick}
-            >
-              <Users className="text-emerald-400 mr-4" size={32} />
-              <div>
-                <p className="text-gray-400">{t('overview.onboardedUsers')}</p>
-                <p className="text-2xl font-bold text-white">
-                  {errors.onboarding ? (
-                    <span className="text-red-400 text-lg">{t('common:states.error')}</span>
-                  ) : (
-                    formatMetricValue(data.onboarding?.pet_created_users || 0, language, { maximumFractionDigits: 0 })
-                  )}
-                </p>
-              </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+              <ChartCard title={t('overview.charts.dau')}>
+                {errors.dau ? (
+                  <div className="flex h-full items-center justify-center text-red-500">{t('overview.errors.dau')}</div>
+                ) : (
+                  <ResponsiveContainer>
+                    <BarChart data={processedDau}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                      <XAxis dataKey="dayLabel" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                      <YAxis stroke="#9CA3AF" />
+                      <Tooltip
+                        cursor={{ fill: '#374151' }}
+                        contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
+                        formatter={(value, name) => [formatMetricValue(value, language), name]}
+                      />
+                      <Bar
+                        dataKey="active_users_count"
+                        fill="#3B82F6"
+                        radius={[4, 4, 0, 0]}
+                        name={t('chartSeries.activeUsers')}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </ChartCard>
+
+              <ChartCard title={t('overview.charts.funnel')}>
+                {errors.onboarding ? (
+                  <div className="flex h-full items-center justify-center text-red-500">{t('overview.errors.onboarding')}</div>
+                ) : (
+                  <ResponsiveContainer>
+                    <BarChart data={funnelData} layout="vertical">
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal vertical={false} />
+                      <XAxis type="number" stroke="#9CA3AF" />
+                      <YAxis dataKey="stage" type="category" stroke="#9CA3AF" width={150} fontSize={12} />
+                      <Tooltip
+                        cursor={{ fill: '#374151' }}
+                        contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
+                        formatter={(value, name) => [formatMetricValue(value, language), name]}
+                      />
+                      <Bar dataKey="count" fill="#10B981" radius={[0, 4, 4, 0]} name={t('chartSeries.count')} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </ChartCard>
             </div>
-            <div className="bg-gray-800 p-6 rounded-xl flex items-center shadow-lg border border-gray-700">
-              <Database className="text-purple-400 mr-4" size={32} />
-              <div>
-                <p className="text-gray-400">{t('overview.todayDau')}</p>
-                <p className="text-2xl font-bold text-white">
-                  {errors.dau ? (
-                    <span className="text-red-400 text-lg">{t('common:states.error')}</span>
-                  ) : (
-                    formatMetricValue(data.dau?.length > 0 ? data.dau[0].active_users_count : 0, language, { maximumFractionDigits: 0 })
-                  )}
-                </p>
-              </div>
-            </div>
-            <div className="bg-gray-800 p-6 rounded-xl flex items-center shadow-lg border border-gray-700">
-              <ShieldAlert className="text-red-400 mr-4" size={32} />
-              <div>
-                <p className="text-gray-400">{t('overview.recentApiErrors')}</p>
-                <p className="text-2xl font-bold text-white">
-                  {errors.aiHealth ? (
-                    <span className="text-red-400 text-lg">{t('common:states.error')}</span>
-                  ) : (
-                    formatMetricValue(data.aiHealth?.length > 0 ? data.aiHealth[0].provider_failures : 0, language, { maximumFractionDigits: 0 })
-                  )}
-                </p>
-              </div>
-            </div>
-          </div>
+          </>
         )}
 
-        {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            <ChartCard title={t('overview.charts.dau')}>
-              {errors.dau ? (
-                <div className="flex h-full items-center justify-center text-red-500">{t('overview.errors.dau')}</div>
+        {activeTab === 'analytics' && (
+          <>
+            <div className="mb-8">
+              <SectionHeader
+                title={t('analytics.usageOverview.title')}
+                description={t('analytics.usageOverview.description')}
+              />
+              {errors.usageSummary ? (
+                <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-sm text-red-500">
+                  {t('analytics.usageOverview.error')}
+                </div>
               ) : (
-                <ResponsiveContainer>
-                  <BarChart data={processedDau}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                    <XAxis dataKey="dayLabel" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
-                    <YAxis stroke="#9CA3AF" />
-                    <Tooltip
-                      cursor={{ fill: '#374151' }}
-                      contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
-                      formatter={(value, name) => [formatMetricValue(value, language), name]}
-                    />
-                    <Bar
-                      dataKey="active_users_count"
-                      fill="#3B82F6"
-                      radius={[4, 4, 0, 0]}
-                      name={t('chartSeries.activeUsers')}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-6">
+                  {analyticsOverviewMetrics.map((metric) => (
+                    <MetricCard key={metric.key} title={metric.title} value={metric.value} subtitle={metric.subtitle} />
+                  ))}
+                </div>
               )}
-            </ChartCard>
+            </div>
 
-            <ChartCard title={t('overview.charts.funnel')}>
-              {errors.onboarding ? (
-                <div className="flex h-full items-center justify-center text-red-500">{t('overview.errors.onboarding')}</div>
-              ) : (
-                <ResponsiveContainer>
-                  <BarChart data={funnelData} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={true} vertical={false} />
-                    <XAxis type="number" stroke="#9CA3AF" />
-                    <YAxis dataKey="stage" type="category" stroke="#9CA3AF" width={150} fontSize={12} />
-                    <Tooltip
-                      cursor={{ fill: '#374151' }}
-                      contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
-                      formatter={(value, name) => [formatMetricValue(value, language), name]}
-                    />
-                    <Bar dataKey="count" fill="#10B981" radius={[0, 4, 4, 0]} name={t('chartSeries.count')} />
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </ChartCard>
-          </div>
-        )}
+            <div className="mb-8">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <SectionHeader
+                  title={t('analytics.usageTrends.title')}
+                  description={t('analytics.usageTrends.description')}
+                />
+                <MetricToggle
+                  label={t('analytics.usageTrends.metricToggleLabel')}
+                  options={analyticsTrendOptions}
+                  value={analyticsTrendMetric}
+                  onChange={setAnalyticsTrendMetric}
+                />
+              </div>
+              <ChartCard title={t('analytics.usageTrends.chartTitle', { metric: selectedTrendMetric.label })}>
+                {errors.timeRange ? (
+                  <div className="flex h-full items-center justify-center text-red-500">{t('analytics.usageTrends.error')}</div>
+                ) : analyticsTrendData.length > 0 ? (
+                  <ResponsiveContainer>
+                    <LineChart data={analyticsTrendData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                      <XAxis dataKey="displayTimeLabel" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                      <YAxis stroke="#9CA3AF" />
+                      <Tooltip
+                        cursor={{ fill: '#374151' }}
+                        contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
+                        formatter={(value) => [formatMetricValue(value, language, selectedTrendMetric.formatOptions), selectedTrendMetric.label]}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="metric_value"
+                        stroke={selectedTrendMetric.color}
+                        strokeWidth={2}
+                        dot={{ r: 3 }}
+                        name={selectedTrendMetric.label}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex h-full items-center justify-center text-gray-500">
+                    {t('analytics.usageTrends.empty')}
+                  </div>
+                )}
+              </ChartCard>
+            </div>
 
-        {activeTab === 'telemetry' && (
-          <div className="mb-8">
-            <ChartCard title={t('telemetry.charts.hourly')}>
-              {errors.hourly ? (
-                <div className="flex h-full items-center justify-center text-red-500">{t('telemetry.errors.hourly')}</div>
+            <div className="mb-8">
+              <SectionHeader
+                title={t('analytics.userIntensity.title')}
+                description={t('analytics.userIntensity.description')}
+              />
+              {errors.userReports ? (
+                <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-sm text-red-500">
+                  {t('analytics.userIntensity.errors.users')}
+                </div>
+              ) : topUsersData.length > 0 ? (
+                <div className="grid grid-cols-1 xl:grid-cols-[1.05fr_1.4fr] gap-8">
+                  <ChartCard title={t('analytics.userIntensity.charts.intensity')}>
+                    <ResponsiveContainer>
+                      <BarChart data={userIntensityChartData} layout="vertical">
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal vertical={false} />
+                        <XAxis type="number" stroke="#9CA3AF" />
+                        <YAxis dataKey="displayLabel" type="category" stroke="#9CA3AF" width={120} fontSize={12} />
+                        <Tooltip cursor={{ fill: '#374151' }} content={<UserIntensityTooltip />} />
+                        <Bar
+                          dataKey="requests_count"
+                          fill="#3B82F6"
+                          radius={[0, 4, 4, 0]}
+                          name={t('analytics.userIntensity.table.headers.requests')}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </ChartCard>
+
+                  <ContentCard
+                    title={t('analytics.userIntensity.table.title')}
+                    description={t('analytics.userIntensity.table.description')}
+                  >
+                    <div className="overflow-x-auto">
+                      <table className="w-full min-w-[720px] text-sm text-left">
+                        <thead className="text-gray-400 border-b border-gray-700">
+                          <tr>
+                            <th className="py-3 pr-4 font-semibold">{t('analytics.userIntensity.table.headers.user')}</th>
+                            <th className="py-3 pr-4 font-semibold">{t('analytics.userIntensity.table.headers.requests')}</th>
+                            <th className="py-3 pr-4 font-semibold">{t('analytics.userIntensity.table.headers.sessions')}</th>
+                            <th className="py-3 pr-4 font-semibold">{t('analytics.userIntensity.table.headers.totalTokens')}</th>
+                            <th className="py-3 pr-4 font-semibold">{t('analytics.userIntensity.table.headers.avgResponseTime')}</th>
+                            <th className="py-3 font-semibold">{t('analytics.userIntensity.table.headers.rateLimits')}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {topUsersData.map((user) => (
+                            <tr key={user.user_id} className="border-b border-gray-800 last:border-b-0">
+                              <td className="py-3 pr-4 text-white font-medium break-all">{user.email || unknownLabel}</td>
+                              <td className="py-3 pr-4 text-gray-300">{formatMetricValue(user.requests_count, language, { maximumFractionDigits: 0 })}</td>
+                              <td className="py-3 pr-4 text-gray-300">{formatMetricValue(user.sessions_count, language, { maximumFractionDigits: 0 })}</td>
+                              <td className="py-3 pr-4 text-gray-300">{formatMetricValue(user.total_tokens, language, { maximumFractionDigits: 0 })}</td>
+                              <td className="py-3 pr-4 text-gray-300">{formatMetricValue(user.avg_response_time_ms, language, { suffix: msSuffix })}</td>
+                              <td className="py-3 text-gray-300">{formatMetricValue(user.rate_limit_exceeded_count, language, { maximumFractionDigits: 0 })}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </ContentCard>
+                </div>
               ) : (
-                <ResponsiveContainer>
-                  <AreaChart data={processedHourly}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                    <XAxis dataKey="hourLabel" stroke="#9CA3AF" fontSize={11} tickMargin={10} />
-                    <YAxis stroke="#9CA3AF" />
-                    <Tooltip
-                      cursor={{ fill: '#374151' }}
-                      contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
-                      formatter={(value, name) => [formatMetricValue(value, language), name]}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="ai_success_count"
-                      stackId="1"
-                      stroke="#8B5CF6"
-                      fill="#8B5CF6"
-                      name={t('chartSeries.aiSuccess')}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="telemetry_events_count"
-                      stackId="1"
-                      stroke="#3B82F6"
-                      fill="#3B82F6"
-                      name={t('chartSeries.telemetryEvents')}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
+                <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-sm text-gray-400">
+                  {t('analytics.userIntensity.empty.users')}
+                </div>
               )}
-            </ChartCard>
-          </div>
+            </div>
+
+            <div className="mb-8">
+              <SectionHeader
+                title={t('analytics.adoption.title')}
+                description={t('analytics.adoption.description')}
+              />
+              {errors.onboardedUsers ? (
+                <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-sm text-red-500">
+                  {t('analytics.adoption.errors.onboarded')}
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
+                    <MetricCard
+                      title={t('analytics.adoption.metrics.totalOnboardedUsers.title')}
+                      value={formatMetricValue(onboardedUsersData.length, language, { maximumFractionDigits: 0 })}
+                      subtitle={t('analytics.adoption.metrics.totalOnboardedUsers.subtitle')}
+                    />
+                    <MetricCard
+                      title={t('analytics.adoption.metrics.onboardedInRange.title')}
+                      value={formatMetricValue(onboardedUsersInRange.length, language, { maximumFractionDigits: 0 })}
+                      subtitle={t('analytics.adoption.metrics.onboardedInRange.subtitle')}
+                    />
+                    <MetricCard
+                      title={t('analytics.adoption.metrics.zeroUsage.title')}
+                      value={formatMetricValue(zeroUsageOnboardedCount, language, { maximumFractionDigits: 0 })}
+                      subtitle={t('analytics.adoption.metrics.zeroUsage.subtitle')}
+                    />
+                    <MetricCard
+                      title={t('analytics.adoption.metrics.avgRequestsPerOnboarded.title')}
+                      value={formatMetricValue(avgRequestsPerOnboarded, language)}
+                      subtitle={t('analytics.adoption.metrics.avgRequestsPerOnboarded.subtitle')}
+                    />
+                  </div>
+
+                  <ChartCard
+                    title={t('analytics.adoption.charts.onboardedOverTime')}
+                    description={t('analytics.adoption.charts.onboardedOverTimeDescription')}
+                  >
+                    {onboardedTimelineData.length > 0 ? (
+                      <ResponsiveContainer>
+                        <BarChart data={onboardedTimelineData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                          <XAxis dataKey="dayLabel" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                          <YAxis stroke="#9CA3AF" />
+                          <Tooltip
+                            cursor={{ fill: '#374151' }}
+                            contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
+                            formatter={(value, name) => [formatMetricValue(value, language, { maximumFractionDigits: 0 }), name]}
+                          />
+                          <Bar
+                            dataKey="count"
+                            fill="#10B981"
+                            radius={[4, 4, 0, 0]}
+                            name={t('analytics.adoption.charts.onboardedSeries')}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-gray-500">
+                        {t('analytics.adoption.empty.onboarded')}
+                      </div>
+                    )}
+                  </ChartCard>
+                </>
+              )}
+            </div>
+
+            <div className="mb-8">
+              <SectionHeader
+                title={t('analytics.engagement.title')}
+                description={t('analytics.engagement.description')}
+              />
+              {errors.userReports || errors.engagement ? (
+                <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-sm text-red-500">
+                  {t('analytics.engagement.errors.engagement')}
+                </div>
+              ) : engagementComparisonData.length > 0 ? (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <MetricCard
+                      title={t('analytics.engagement.metrics.engagedAvgRequests.title')}
+                      value={formatMetricValue(avgRequestsAmongEngaged, language)}
+                      subtitle={t('analytics.engagement.metrics.engagedAvgRequests.subtitle')}
+                    />
+                    <MetricCard
+                      title={t('analytics.engagement.metrics.noEngagementAvgRequests.title')}
+                      value={formatMetricValue(avgRequestsWithoutEngagement, language)}
+                      subtitle={t('analytics.engagement.metrics.noEngagementAvgRequests.subtitle')}
+                    />
+                    <MetricCard
+                      title={t('analytics.engagement.metrics.overlapUsers.title')}
+                      value={formatMetricValue(usersWithBothSignals, language, { maximumFractionDigits: 0 })}
+                      subtitle={t('analytics.engagement.metrics.overlapUsers.subtitle')}
+                    />
+                  </div>
+
+                  <ChartCard title={t('analytics.engagement.charts.scatter')}>
+                    <ResponsiveContainer>
+                      <ScatterChart margin={{ top: 10, right: 20, bottom: 10, left: 10 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis
+                          type="number"
+                          dataKey="engagement_total"
+                          name={t('analytics.engagement.axis.engagement')}
+                          stroke="#9CA3AF"
+                          tickMargin={10}
+                        />
+                        <YAxis
+                          type="number"
+                          dataKey="requests_count"
+                          name={t('analytics.engagement.axis.requests')}
+                          stroke="#9CA3AF"
+                        />
+                        <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<EngagementScatterTooltip />} />
+                        <Scatter data={engagementComparisonData} fill="#38BDF8" />
+                      </ScatterChart>
+                    </ResponsiveContainer>
+                  </ChartCard>
+                </>
+              ) : (
+                <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-sm text-gray-400">
+                  {t('analytics.engagement.empty.engagement')}
+                </div>
+              )}
+            </div>
+          </>
         )}
 
         {activeTab === 'demographics' && (
@@ -666,12 +1290,7 @@ export default function DashboardScreen() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
                   {usageOverviewMetrics.map((metric) => (
-                    <MetricCard
-                      key={metric.key}
-                      title={metric.title}
-                      value={metric.value}
-                      subtitle={metric.subtitle}
-                    />
+                    <MetricCard key={metric.key} title={metric.title} value={metric.value} subtitle={metric.subtitle} />
                   ))}
                 </div>
               )}
@@ -682,326 +1301,375 @@ export default function DashboardScreen() {
                 title={t('demographics.userDistribution.title')}
                 description={t('demographics.userDistribution.description')}
               />
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <ChartCard title={t('demographics.userDistribution.charts.age')}>
-              {errors.usersByAgeGroup ? (
-                <div className="flex h-full items-center justify-center text-red-500">{t('demographics.userDistribution.errors.age')}</div>
-              ) : usersByAgeGroupData.length > 0 ? (
-                <ResponsiveContainer>
-                  <BarChart data={usersByAgeGroupData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                    <XAxis dataKey="age_group_label" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
-                    <YAxis stroke="#9CA3AF" />
-                    <Tooltip
-                      cursor={{ fill: '#374151' }}
-                      contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
-                      formatter={(value, name) => [formatMetricValue(value, language), name]}
-                    />
-                    <Bar dataKey="users_count" fill="#F59E0B" radius={[4, 4, 0, 0]} name={t('chartSeries.users')} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex h-full items-center justify-center text-gray-500">
-                  {t('demographics.userDistribution.empty.age')}
-                </div>
-              )}
-            </ChartCard>
-
-            <ChartCard title={t('demographics.userDistribution.charts.gender')}>
-              {errors.usersByGender ? (
-                <div className="flex h-full items-center justify-center text-red-500">{t('demographics.userDistribution.errors.gender')}</div>
-              ) : usersByGenderData.length > 0 ? (
-                <ResponsiveContainer>
-                  <BarChart data={usersByGenderData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                    <XAxis dataKey="gender_label" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
-                    <YAxis stroke="#9CA3AF" />
-                    <Tooltip
-                      cursor={{ fill: '#374151' }}
-                      contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
-                      formatter={(value, name) => [formatMetricValue(value, language), name]}
-                    />
-                    <Bar dataKey="users_count" fill="#06B6D4" radius={[4, 4, 0, 0]} name={t('chartSeries.users')} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex h-full items-center justify-center text-gray-500">
-                  {t('demographics.userDistribution.empty.gender')}
-                </div>
-              )}
-            </ChartCard>
-
-            <ChartCard title={t('demographics.userDistribution.charts.weight')}>
-              {errors.usersByWeight ? (
-                <div className="flex h-full items-center justify-center text-red-500">{t('demographics.userDistribution.errors.weight')}</div>
-              ) : usersByWeightData.length > 0 ? (
-                <ResponsiveContainer>
-                  <BarChart data={usersByWeightData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                    <XAxis dataKey="bucket_label" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
-                    <YAxis stroke="#9CA3AF" />
-                    <Tooltip
-                      cursor={{ fill: '#374151' }}
-                      contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
-                      formatter={(value, name) => [formatMetricValue(value, language), name]}
-                    />
-                    <Bar dataKey="users_count" fill="#22C55E" radius={[4, 4, 0, 0]} name={t('chartSeries.users')} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex h-full items-center justify-center text-gray-500">
-                  {t('demographics.userDistribution.empty.weight')}
-                </div>
-              )}
-            </ChartCard>
-
-            <ChartCard title={t('demographics.userDistribution.charts.height')}>
-              {errors.usersByHeight ? (
-                <div className="flex h-full items-center justify-center text-red-500">{t('demographics.userDistribution.errors.height')}</div>
-              ) : usersByHeightData.length > 0 ? (
-                <ResponsiveContainer>
-                  <BarChart data={usersByHeightData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                    <XAxis dataKey="bucket_label" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
-                    <YAxis stroke="#9CA3AF" />
-                    <Tooltip
-                      cursor={{ fill: '#374151' }}
-                      contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
-                      formatter={(value, name) => [formatMetricValue(value, language), name]}
-                    />
-                    <Bar dataKey="users_count" fill="#A855F7" radius={[4, 4, 0, 0]} name={t('chartSeries.users')} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex h-full items-center justify-center text-gray-500">
-                  {t('demographics.userDistribution.empty.height')}
-                </div>
-              )}
-            </ChartCard>
-          </div>
-        </div>
-
-        <div className="mb-8">
-          <SectionHeader
-            title={t('demographics.segmentComparison.title')}
-            description={t('demographics.segmentComparison.description')}
-          />
-          {errors.segmentComparison ? (
-            <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-sm text-red-500">
-              {t('demographics.segmentComparison.error')}
-            </div>
-          ) : segmentComparisons.length > 0 ? (
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              {segmentComparisons.map((comparison) => (
-                <SegmentComparisonCard
-                  key={`${comparison.dimension}-${comparison.metric}`}
-                  comparison={comparison}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-sm text-gray-400">
-              {t('demographics.segmentComparison.empty')}
-            </div>
-          )}
-        </div>
-
-        <div className="mb-8">
-          <SectionHeader
-            title={t('demographics.usageBySegment.title')}
-            description={t('demographics.usageBySegment.description')}
-          />
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <ChartCard title={t('demographics.usageBySegment.charts.age')}>
-              {errors.ageGroup ? (
-                <div className="flex h-full items-center justify-center text-red-500">{t('demographics.usageBySegment.errors.age')}</div>
-              ) : ageGroupData.length > 0 ? (
-                <ResponsiveContainer>
-                  <BarChart data={ageGroupData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                    <XAxis dataKey="age_group_label" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
-                    <YAxis stroke="#9CA3AF" />
-                    <Tooltip cursor={{ fill: '#374151' }} content={<UsageMetricsTooltip labelKey="age_group" />} />
-                    <Bar dataKey="requests_count" fill="#EC4899" radius={[4, 4, 0, 0]} name={t('chartSeries.requests')} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex h-full items-center justify-center text-gray-500">
-                  {t('demographics.usageBySegment.empty.age')}
-                </div>
-              )}
-            </ChartCard>
-
-            <ChartCard title={t('demographics.usageBySegment.charts.gender')}>
-              {errors.genderInsights ? (
-                <div className="flex h-full items-center justify-center text-red-500">{t('demographics.usageBySegment.errors.gender')}</div>
-              ) : genderInsightsData.length > 0 ? (
-                <ResponsiveContainer>
-                  <BarChart data={genderInsightsData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                    <XAxis dataKey="gender_label" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
-                    <YAxis stroke="#9CA3AF" />
-                    <Tooltip cursor={{ fill: '#374151' }} content={<UsageMetricsTooltip labelKey="gender" />} />
-                    <Bar dataKey="avg_requests" fill="#3B82F6" radius={[4, 4, 0, 0]} name={t('chartSeries.avgRequests')} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex h-full items-center justify-center text-gray-500">
-                  {t('demographics.usageBySegment.empty.gender')}
-                </div>
-              )}
-            </ChartCard>
-
-            <ChartCard title={t('demographics.usageBySegment.charts.weight')}>
-              {errors.weightInsights ? (
-                <div className="flex h-full items-center justify-center text-red-500">{t('demographics.usageBySegment.errors.weight')}</div>
-              ) : weightInsightsData.length > 0 ? (
-                <ResponsiveContainer>
-                  <BarChart data={weightInsightsData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                    <XAxis dataKey="bucket_label" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
-                    <YAxis stroke="#9CA3AF" />
-                    <Tooltip cursor={{ fill: '#374151' }} content={<UsageMetricsTooltip labelKey="bucket" />} />
-                    <Bar dataKey="avg_requests" fill="#10B981" radius={[4, 4, 0, 0]} name={t('chartSeries.avgRequests')} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex h-full items-center justify-center text-gray-500">
-                  {t('demographics.usageBySegment.empty.weight')}
-                </div>
-              )}
-            </ChartCard>
-
-            <ChartCard title={t('demographics.usageBySegment.charts.height')}>
-              {errors.heightInsights ? (
-                <div className="flex h-full items-center justify-center text-red-500">{t('demographics.usageBySegment.errors.height')}</div>
-              ) : heightInsightsData.length > 0 ? (
-                <ResponsiveContainer>
-                  <BarChart data={heightInsightsData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                    <XAxis dataKey="bucket_label" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
-                    <YAxis stroke="#9CA3AF" />
-                    <Tooltip cursor={{ fill: '#374151' }} content={<UsageMetricsTooltip labelKey="bucket" />} />
-                    <Bar dataKey="avg_requests" fill="#8B5CF6" radius={[4, 4, 0, 0]} name={t('chartSeries.avgRequests')} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex h-full items-center justify-center text-gray-500">
-                  {t('demographics.usageBySegment.empty.height')}
-                </div>
-              )}
-            </ChartCard>
-          </div>
-        </div>
-      </>
-      )}
-      {activeTab === 'system' && (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <ChartCard title={t('system.charts.aiHealth')}>
-          {errors.aiHealth ? (
-            <div className="flex h-full items-center justify-center text-red-500">{t('system.errors.aiHealth')}</div>
-          ) : (
-            <ResponsiveContainer>
-              <LineChart data={processedAiHealth}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis dataKey="dayLabel" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
-                <YAxis stroke="#9CA3AF" />
-                <Tooltip
-                  cursor={{ fill: '#374151' }}
-                  contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
-                  formatter={(value, name) => [formatMetricValue(value, language), name]}
-                />
-                <Line type="monotone" dataKey="success_count" stroke="#10B981" strokeWidth={2} name={t('chartSeries.success')} />
-                <Line type="monotone" dataKey="rate_limits_hit" stroke="#EF4444" strokeWidth={2} name={t('chartSeries.rateLimited')} />
-                <Line type="monotone" dataKey="provider_failures" stroke="#F59E0B" strokeWidth={2} name={t('chartSeries.providerErrors')} />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-        </ChartCard>
-        <ChartCard title={t('system.charts.requestsOverTime')}>
-          {errors.timeRange ? (
-            <div className="flex h-full items-center justify-center text-red-500">{t('system.errors.activityTimeline')}</div>
-          ) : timeRangeData.length > 0 ? (
-            <ResponsiveContainer>
-              <LineChart data={timeRangeData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis dataKey="displayTimeLabel" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
-                <YAxis stroke="#9CA3AF" />
-                <Tooltip
-                  cursor={{ fill: '#374151' }}
-                  contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
-                  formatter={(value, name) => [formatMetricValue(value, language), name]}
-                />
-                <Line type="monotone" dataKey="metric_value" stroke="#3B82F6" strokeWidth={2} name={t('chartSeries.activity')} />
-              </LineChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex h-full items-center justify-center text-gray-500">
-              {t('system.empty.activityTimeline')}
-            </div>
-          )}
-        </ChartCard>
-      </div>
-      )}
-
-      {/* Onboarded Users Modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setModalOpen(false)}>
-          <div className="bg-gray-800 border border-gray-700 rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
-            <div className="p-6 border-b border-gray-700 flex justify-between items-center">
-              <h2 className="text-xl font-bold text-white">{t('modal.onboardedUsers.title')}</h2>
-              <button 
-                onClick={() => setModalOpen(false)}
-                aria-label={t('common:actions.close')}
-                className="text-gray-400 hover:text-white transition-colors text-2xl leading-none"
-              >
-                &times;
-              </button>
-            </div>
-            <div className="p-6 overflow-y-auto flex-1">
-              {!modalLoading && !modalError && modalUsers.length > 0 && (
-                <div className="mb-4">
-                  <input
-                    type="text"
-                    aria-label={t('modal.onboardedUsers.searchPlaceholder')}
-                    placeholder={t('modal.onboardedUsers.searchPlaceholder')}
-                    value={modalSearch}
-                    onChange={e => setModalSearch(e.target.value)}
-                    className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-              )}
-              {modalLoading ? (
-                <div className="text-center text-gray-400 py-8">{t('modal.onboardedUsers.loading')}</div>
-              ) : modalError ? (
-                <div className="text-center text-red-500 py-8">{t('modal.onboardedUsers.error')}</div>
-              ) : modalUsers.length === 0 ? (
-                <div className="text-center text-gray-400 py-8">{t('modal.onboardedUsers.empty')}</div>
-              ) : (
-                (() => {
-                  const filteredUsers = modalUsers.filter(u => (u.email || '').toLowerCase().includes(modalSearch.toLowerCase()));
-                  if (filteredUsers.length === 0) {
-                    return <div className="text-center text-gray-400 py-8">{t('modal.onboardedUsers.noMatches')}</div>;
-                  }
-                  return (
-                    <div className="space-y-3">
-                      {filteredUsers.map(u => (
-                        <div key={u.id} className="bg-gray-900 p-4 rounded-lg flex justify-between items-center border border-gray-700">
-                          <div className="text-white font-medium truncate mr-4">{u.email || unknownLabel}</div>
-                          <div className="text-gray-400 text-sm shrink-0">
-                            {formatDateTime(u.created_at, language, { dateStyle: 'medium', timeStyle: 'short' }) || unknownLabel}
-                          </div>
-                        </div>
-                      ))}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <ChartCard title={t('demographics.userDistribution.charts.age')}>
+                  {errors.usersByAgeGroup ? (
+                    <div className="flex h-full items-center justify-center text-red-500">{t('demographics.userDistribution.errors.age')}</div>
+                  ) : usersByAgeGroupData.length > 0 ? (
+                    <ResponsiveContainer>
+                      <BarChart data={usersByAgeGroupData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis dataKey="age_group_label" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                        <YAxis stroke="#9CA3AF" />
+                        <Tooltip
+                          cursor={{ fill: '#374151' }}
+                          contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
+                          formatter={(value, name) => [formatMetricValue(value, language), name]}
+                        />
+                        <Bar dataKey="users_count" fill="#F59E0B" radius={[4, 4, 0, 0]} name={t('chartSeries.users')} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-gray-500">
+                      {t('demographics.userDistribution.empty.age')}
                     </div>
-                  );
-                })()
+                  )}
+                </ChartCard>
+
+                <ChartCard title={t('demographics.userDistribution.charts.gender')}>
+                  {errors.usersByGender ? (
+                    <div className="flex h-full items-center justify-center text-red-500">{t('demographics.userDistribution.errors.gender')}</div>
+                  ) : usersByGenderData.length > 0 ? (
+                    <ResponsiveContainer>
+                      <BarChart data={usersByGenderData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis dataKey="gender_label" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                        <YAxis stroke="#9CA3AF" />
+                        <Tooltip
+                          cursor={{ fill: '#374151' }}
+                          contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
+                          formatter={(value, name) => [formatMetricValue(value, language), name]}
+                        />
+                        <Bar dataKey="users_count" fill="#06B6D4" radius={[4, 4, 0, 0]} name={t('chartSeries.users')} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-gray-500">
+                      {t('demographics.userDistribution.empty.gender')}
+                    </div>
+                  )}
+                </ChartCard>
+
+                <ChartCard title={t('demographics.userDistribution.charts.weight')}>
+                  {errors.usersByWeight ? (
+                    <div className="flex h-full items-center justify-center text-red-500">{t('demographics.userDistribution.errors.weight')}</div>
+                  ) : usersByWeightData.length > 0 ? (
+                    <ResponsiveContainer>
+                      <BarChart data={usersByWeightData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis dataKey="bucket_label" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                        <YAxis stroke="#9CA3AF" />
+                        <Tooltip
+                          cursor={{ fill: '#374151' }}
+                          contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
+                          formatter={(value, name) => [formatMetricValue(value, language), name]}
+                        />
+                        <Bar dataKey="users_count" fill="#22C55E" radius={[4, 4, 0, 0]} name={t('chartSeries.users')} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-gray-500">
+                      {t('demographics.userDistribution.empty.weight')}
+                    </div>
+                  )}
+                </ChartCard>
+
+                <ChartCard title={t('demographics.userDistribution.charts.height')}>
+                  {errors.usersByHeight ? (
+                    <div className="flex h-full items-center justify-center text-red-500">{t('demographics.userDistribution.errors.height')}</div>
+                  ) : usersByHeightData.length > 0 ? (
+                    <ResponsiveContainer>
+                      <BarChart data={usersByHeightData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis dataKey="bucket_label" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                        <YAxis stroke="#9CA3AF" />
+                        <Tooltip
+                          cursor={{ fill: '#374151' }}
+                          contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
+                          formatter={(value, name) => [formatMetricValue(value, language), name]}
+                        />
+                        <Bar dataKey="users_count" fill="#A855F7" radius={[4, 4, 0, 0]} name={t('chartSeries.users')} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-gray-500">
+                      {t('demographics.userDistribution.empty.height')}
+                    </div>
+                  )}
+                </ChartCard>
+              </div>
+            </div>
+
+            <div className="mb-8">
+              <SectionHeader
+                title={t('demographics.segmentComparison.title')}
+                description={t('demographics.segmentComparison.description')}
+              />
+              {errors.segmentComparison ? (
+                <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-sm text-red-500">
+                  {t('demographics.segmentComparison.error')}
+                </div>
+              ) : segmentComparisons.length > 0 ? (
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                  {segmentComparisons.map((comparison) => (
+                    <SegmentComparisonCard key={`${comparison.dimension}-${comparison.metric}`} comparison={comparison} />
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-sm text-gray-400">
+                  {t('demographics.segmentComparison.empty')}
+                </div>
               )}
             </div>
-          </div>
-        </div>
-      )}
 
+            <div className="mb-8">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <SectionHeader
+                  title={t('demographics.usageBySegment.title')}
+                  description={t('demographics.usageBySegment.description')}
+                />
+                <MetricToggle
+                  label={t('demographics.metricToggleLabel')}
+                  options={demographicsMetricOptions}
+                  value={demographicsMetric}
+                  onChange={setDemographicsMetric}
+                />
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <ChartCard title={t('demographics.usageBySegment.charts.age', { metric: selectedDemographicsMetric.label })}>
+                  {errors.ageGroup ? (
+                    <div className="flex h-full items-center justify-center text-red-500">{t('demographics.usageBySegment.errors.age')}</div>
+                  ) : ageGroupData.length > 0 ? (
+                    <ResponsiveContainer>
+                      <BarChart data={ageGroupData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis dataKey="age_group_label" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                        <YAxis stroke="#9CA3AF" />
+                        <Tooltip cursor={{ fill: '#374151' }} content={<UsageMetricsTooltip labelKey="age_group" />} />
+                        <Bar dataKey={selectedDemographicsMetric.dataKey} fill="#EC4899" radius={[4, 4, 0, 0]} name={selectedDemographicsMetric.seriesName} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-gray-500">
+                      {t('demographics.usageBySegment.empty.age')}
+                    </div>
+                  )}
+                </ChartCard>
+
+                <ChartCard title={t('demographics.usageBySegment.charts.gender', { metric: selectedDemographicsMetric.label })}>
+                  {errors.genderInsights ? (
+                    <div className="flex h-full items-center justify-center text-red-500">{t('demographics.usageBySegment.errors.gender')}</div>
+                  ) : genderInsightsData.length > 0 ? (
+                    <ResponsiveContainer>
+                      <BarChart data={genderInsightsData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis dataKey="gender_label" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                        <YAxis stroke="#9CA3AF" />
+                        <Tooltip cursor={{ fill: '#374151' }} content={<UsageMetricsTooltip labelKey="gender" />} />
+                        <Bar dataKey={selectedDemographicsMetric.dataKey} fill="#3B82F6" radius={[4, 4, 0, 0]} name={selectedDemographicsMetric.seriesName} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-gray-500">
+                      {t('demographics.usageBySegment.empty.gender')}
+                    </div>
+                  )}
+                </ChartCard>
+
+                <ChartCard title={t('demographics.usageBySegment.charts.weight', { metric: selectedDemographicsMetric.label })}>
+                  {errors.weightInsights ? (
+                    <div className="flex h-full items-center justify-center text-red-500">{t('demographics.usageBySegment.errors.weight')}</div>
+                  ) : weightInsightsData.length > 0 ? (
+                    <ResponsiveContainer>
+                      <BarChart data={weightInsightsData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis dataKey="bucket_label" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                        <YAxis stroke="#9CA3AF" />
+                        <Tooltip cursor={{ fill: '#374151' }} content={<UsageMetricsTooltip labelKey="bucket" />} />
+                        <Bar dataKey={selectedDemographicsMetric.dataKey} fill="#10B981" radius={[4, 4, 0, 0]} name={selectedDemographicsMetric.seriesName} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-gray-500">
+                      {t('demographics.usageBySegment.empty.weight')}
+                    </div>
+                  )}
+                </ChartCard>
+
+                <ChartCard title={t('demographics.usageBySegment.charts.height', { metric: selectedDemographicsMetric.label })}>
+                  {errors.heightInsights ? (
+                    <div className="flex h-full items-center justify-center text-red-500">{t('demographics.usageBySegment.errors.height')}</div>
+                  ) : heightInsightsData.length > 0 ? (
+                    <ResponsiveContainer>
+                      <BarChart data={heightInsightsData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis dataKey="bucket_label" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                        <YAxis stroke="#9CA3AF" />
+                        <Tooltip cursor={{ fill: '#374151' }} content={<UsageMetricsTooltip labelKey="bucket" />} />
+                        <Bar dataKey={selectedDemographicsMetric.dataKey} fill="#8B5CF6" radius={[4, 4, 0, 0]} name={selectedDemographicsMetric.seriesName} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-gray-500">
+                      {t('demographics.usageBySegment.empty.height')}
+                    </div>
+                  )}
+                </ChartCard>
+              </div>
+            </div>
+          </>
+        )}
+
+        {activeTab === 'telemetry' && (
+          <div className="mb-8">
+            <SectionHeader
+              title={t('telemetry.overview.title')}
+              description={t('telemetry.overview.description')}
+            />
+            {errors.hourly ? (
+              <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-sm text-red-500">
+                {t('telemetry.errors.hourly')}
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
+                  {telemetryMetrics.map((metric) => (
+                    <MetricCard key={metric.key} title={metric.title} value={metric.value} subtitle={metric.subtitle} />
+                  ))}
+                </div>
+                <ChartCard title={t('telemetry.charts.hourly')} description={t('telemetry.charts.hourlyDescription')}>
+                  {processedHourly.length > 0 ? (
+                    <ResponsiveContainer>
+                      <AreaChart data={processedHourly}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis dataKey="hourLabel" stroke="#9CA3AF" fontSize={11} tickMargin={10} />
+                        <YAxis stroke="#9CA3AF" />
+                        <Tooltip
+                          cursor={{ fill: '#374151' }}
+                          contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
+                          formatter={(value, name) => [formatMetricValue(value, language), name]}
+                        />
+                        <Area type="monotone" dataKey="ai_success_count" stackId="1" stroke="#8B5CF6" fill="#8B5CF6" name={t('chartSeries.aiSuccess')} />
+                        <Area type="monotone" dataKey="telemetry_events_count" stackId="1" stroke="#3B82F6" fill="#3B82F6" name={t('chartSeries.telemetryEvents')} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-gray-500">
+                      {t('telemetry.empty.hourly')}
+                    </div>
+                  )}
+                </ChartCard>
+              </>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'system' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <ChartCard title={t('system.charts.aiHealth')}>
+              {errors.aiHealth ? (
+                <div className="flex h-full items-center justify-center text-red-500">{t('system.errors.aiHealth')}</div>
+              ) : (
+                <ResponsiveContainer>
+                  <LineChart data={processedAiHealth}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis dataKey="dayLabel" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                    <YAxis stroke="#9CA3AF" />
+                    <Tooltip
+                      cursor={{ fill: '#374151' }}
+                      contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
+                      formatter={(value, name) => [formatMetricValue(value, language), name]}
+                    />
+                    <Line type="monotone" dataKey="success_count" stroke="#10B981" strokeWidth={2} name={t('chartSeries.success')} />
+                    <Line type="monotone" dataKey="rate_limits_hit" stroke="#EF4444" strokeWidth={2} name={t('chartSeries.rateLimited')} />
+                    <Line type="monotone" dataKey="provider_failures" stroke="#F59E0B" strokeWidth={2} name={t('chartSeries.providerErrors')} />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
+            </ChartCard>
+            <ChartCard title={t('system.charts.requestsOverTime')}>
+              {errors.timeRange ? (
+                <div className="flex h-full items-center justify-center text-red-500">{t('system.errors.activityTimeline')}</div>
+              ) : requestsTrendData.length > 0 ? (
+                <ResponsiveContainer>
+                  <LineChart data={requestsTrendData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis dataKey="displayTimeLabel" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                    <YAxis stroke="#9CA3AF" />
+                    <Tooltip
+                      cursor={{ fill: '#374151' }}
+                      contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
+                      formatter={(value, name) => [formatMetricValue(value, language), name]}
+                    />
+                    <Line type="monotone" dataKey="metric_value" stroke="#3B82F6" strokeWidth={2} name={t('chartSeries.activity')} />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex h-full items-center justify-center text-gray-500">
+                  {t('system.empty.activityTimeline')}
+                </div>
+              )}
+            </ChartCard>
+          </div>
+        )}
+
+        {modalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setModalOpen(false)}>
+            <div className="bg-gray-800 border border-gray-700 rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col" onClick={(event) => event.stopPropagation()}>
+              <div className="p-6 border-b border-gray-700 flex justify-between items-center">
+                <h2 className="text-xl font-bold text-white">{t('modal.onboardedUsers.title')}</h2>
+                <button
+                  onClick={() => setModalOpen(false)}
+                  aria-label={t('common:actions.close')}
+                  className="text-gray-400 hover:text-white transition-colors text-2xl leading-none"
+                >
+                  &times;
+                </button>
+              </div>
+              <div className="p-6 overflow-y-auto flex-1">
+                {!modalLoading && !modalError && modalUsers.length > 0 && (
+                  <div className="mb-4">
+                    <input
+                      type="text"
+                      aria-label={t('modal.onboardedUsers.searchPlaceholder')}
+                      placeholder={t('modal.onboardedUsers.searchPlaceholder')}
+                      value={modalSearch}
+                      onChange={(event) => setModalSearch(event.target.value)}
+                      className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                )}
+                {modalLoading ? (
+                  <div className="text-center text-gray-400 py-8">{t('modal.onboardedUsers.loading')}</div>
+                ) : modalError ? (
+                  <div className="text-center text-red-500 py-8">{t('modal.onboardedUsers.error')}</div>
+                ) : modalUsers.length === 0 ? (
+                  <div className="text-center text-gray-400 py-8">{t('modal.onboardedUsers.empty')}</div>
+                ) : (
+                  (() => {
+                    const filteredUsers = modalUsers.filter((user) => (user.email || '').toLowerCase().includes(modalSearch.toLowerCase()));
+                    if (filteredUsers.length === 0) {
+                      return <div className="text-center text-gray-400 py-8">{t('modal.onboardedUsers.noMatches')}</div>;
+                    }
+
+                    return (
+                      <div className="space-y-3">
+                        {filteredUsers.map((user) => (
+                          <div key={user.id} className="bg-gray-900 p-4 rounded-lg flex justify-between items-center border border-gray-700 gap-4">
+                            <div className="text-white font-medium truncate min-w-0">{user.email || unknownLabel}</div>
+                            <div className="text-gray-400 text-sm shrink-0">
+                              {formatDateTime(user.created_at, language, { dateStyle: 'medium', timeStyle: 'short' }) || unknownLabel}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
