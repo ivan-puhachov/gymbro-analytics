@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import LoginScreen from './screens/LoginScreen';
 import DashboardScreen from './screens/DashboardScreen';
 import { api } from './api';
 
 function AuthGuard({ children }) {
+  const { t } = useTranslation(['auth']);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
@@ -22,7 +24,7 @@ function AuthGuard({ children }) {
         if (user.is_admin) {
           setIsAdmin(true);
         } else {
-          alert('Access denied. You must be an administrator.');
+          alert(t('auth.accessDeniedAlert'));
           localStorage.removeItem('admin_token');
           navigate('/login');
         }
@@ -33,9 +35,12 @@ function AuthGuard({ children }) {
       setLoading(false);
     }
     checkAuth();
-  }, [navigate]);
+  }, [navigate, t]);
 
-  if (loading) return <div className="flex h-screen items-center justify-center text-white">Loading Auth...</div>;
+  if (loading) {
+    return <div className="flex h-screen items-center justify-center text-white">{t('auth.loading')}</div>;
+  }
+
   return isAdmin ? children : null;
 }
 

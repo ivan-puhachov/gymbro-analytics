@@ -4,6 +4,13 @@ if (!import.meta.env.VITE_API_URL) {
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
+function createApiError(message, status, details = null) {
+  const error = new Error(message);
+  error.status = status;
+  error.details = details;
+  return error;
+}
+
 export const api = {
   async login(email, password) {
     const formData = new URLSearchParams();
@@ -14,7 +21,7 @@ export const api = {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: formData.toString(),
     });
-    if (!res.ok) throw new Error('Login failed');
+    if (!res.ok) throw createApiError('Login failed', res.status);
     return res.json();
   },
 
@@ -22,7 +29,7 @@ export const api = {
     const res = await fetch(BASE_URL + '/auth/me', {
       headers: { 'Authorization': 'Bearer ' + token },
     });
-    if (!res.ok) throw new Error('Failed to fetch user');
+    if (!res.ok) throw createApiError('Failed to fetch user', res.status);
     return res.json();
   },
 
@@ -30,7 +37,7 @@ export const api = {
     const res = await fetch(BASE_URL + '/reports/' + endpoint, {
       headers: { 'Authorization': 'Bearer ' + token },
     });
-    if (!res.ok) throw new Error('Failed to fetch ' + endpoint);
+    if (!res.ok) throw createApiError(`Failed to fetch ${endpoint}`, res.status, endpoint);
     return res.json();
   },
 
@@ -45,7 +52,7 @@ export const api = {
     const res = await fetch(url.toString(), {
       headers: { 'Authorization': 'Bearer ' + token },
     });
-    if (!res.ok) throw new Error('Failed to fetch analytics: ' + endpoint);
+    if (!res.ok) throw createApiError(`Failed to fetch analytics: ${endpoint}`, res.status, endpoint);
     return res.json();
   }
 };
