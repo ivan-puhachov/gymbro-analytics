@@ -8,7 +8,6 @@ import LanguageToggle from '../components/LanguageToggle';
 import { formatDate, formatDateTime, formatMetricValue, formatTimelineLabel } from '../utils/formatters';
 import {
   getAgeGroupLabel,
-  getEventTypeLabel,
   getGenderLabel,
   getHeightBucketLabel,
   getSegmentValueLabel,
@@ -209,7 +208,6 @@ export default function DashboardScreen() {
           aiHealth: api.getReport('ai-health', token),
           hourly: api.getReport('hourly-activity', token),
           engagement: api.getReport('engagement', token),
-          eventsBreakdown: api.getAnalytics('events/breakdown', token, queryParams),
           usageSummary: api.getAnalytics('usage-summary', token, demographicsQueryParams),
           segmentComparison: api.getAnalytics('segment-comparison', token, demographicsQueryParams),
           ageGroup: api.getAnalytics('by-age-group', token, demographicsQueryParams),
@@ -248,7 +246,6 @@ export default function DashboardScreen() {
           aiHealth: results.aiHealth.status === 'rejected',
           hourly: results.hourly.status === 'rejected',
           engagement: results.engagement.status === 'rejected',
-          eventsBreakdown: results.eventsBreakdown.status === 'rejected',
           usageSummary: results.usageSummary.status === 'rejected',
           segmentComparison: results.segmentComparison.status === 'rejected',
           ageGroup: results.ageGroup.status === 'rejected',
@@ -270,7 +267,6 @@ export default function DashboardScreen() {
           aiHealth: safeData(results.aiHealth, []),
           hourly: safeData(results.hourly, []),
           engagement: safeData(results.engagement, []),
-          eventsBreakdown: safeData(results.eventsBreakdown, { breakdown: [] }),
           usageSummary: safeData(results.usageSummary, {
             total_requests: 0,
             active_users: 0,
@@ -329,18 +325,6 @@ export default function DashboardScreen() {
     ...item,
     dayLabel: formatDate(item.day, language, { month: 'short', day: 'numeric' }) || unknownLabel,
   })).reverse();
-
-  const eventsBreakdownData = (data.eventsBreakdown?.breakdown || []).map((item) => ({
-    ...item,
-    event_type_label: getEventTypeLabel(item.event_type, t),
-  }));
-
-  const sleepTelemetryData = eventsBreakdownData
-    .filter((item) => item.event_type && item.event_type.startsWith('sleep.'))
-    .map((item) => ({
-      ...item,
-      sleep_event_label: getEventTypeLabel(item.event_type, t),
-    }));
 
   const ageGroupData = (data.ageGroup || []).map((item) => ({
     ...item,
@@ -630,7 +614,7 @@ export default function DashboardScreen() {
         )}
 
         {activeTab === 'telemetry' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <div className="mb-8">
             <ChartCard title={t('telemetry.charts.hourly')}>
               {errors.hourly ? (
                 <div className="flex h-full items-center justify-center text-red-500">{t('telemetry.errors.hourly')}</div>
@@ -663,54 +647,6 @@ export default function DashboardScreen() {
                     />
                   </AreaChart>
                 </ResponsiveContainer>
-              )}
-            </ChartCard>
-
-            <ChartCard title={t('telemetry.charts.breakdown')}>
-              {errors.eventsBreakdown ? (
-                <div className="flex h-full items-center justify-center text-red-500">{t('telemetry.errors.breakdown')}</div>
-              ) : eventsBreakdownData.length > 0 ? (
-                <ResponsiveContainer>
-                  <BarChart data={eventsBreakdownData} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={true} vertical={false} />
-                    <XAxis type="number" stroke="#9CA3AF" />
-                    <YAxis dataKey="event_type_label" type="category" stroke="#9CA3AF" width={190} fontSize={11} />
-                    <Tooltip
-                      cursor={{ fill: '#374151' }}
-                      contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
-                      formatter={(value, name) => [formatMetricValue(value, language), name]}
-                    />
-                    <Bar dataKey="count" fill="#8B5CF6" radius={[0, 4, 4, 0]} name={t('chartSeries.count')} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex h-full items-center justify-center text-gray-500">
-                  {t('telemetry.empty.breakdown')}
-                </div>
-              )}
-            </ChartCard>
-
-            <ChartCard title={t('telemetry.charts.sleep')}>
-              {errors.eventsBreakdown ? (
-                <div className="flex h-full items-center justify-center text-red-500">{t('telemetry.errors.sleep')}</div>
-              ) : sleepTelemetryData.length > 0 ? (
-                <ResponsiveContainer>
-                  <BarChart data={sleepTelemetryData} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={true} vertical={false} />
-                    <XAxis type="number" stroke="#9CA3AF" />
-                    <YAxis dataKey="sleep_event_label" type="category" stroke="#9CA3AF" width={190} fontSize={11} />
-                    <Tooltip
-                      cursor={{ fill: '#374151' }}
-                      contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
-                      formatter={(value, name) => [formatMetricValue(value, language), name]}
-                    />
-                    <Bar dataKey="count" fill="#6366F1" radius={[0, 4, 4, 0]} name={t('chartSeries.count')} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex h-full items-center justify-center text-gray-500">
-                  {t('telemetry.empty.sleep')}
-                </div>
               )}
             </ChartCard>
           </div>

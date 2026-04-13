@@ -31,30 +31,6 @@ const HEIGHT_BUCKET_TRANSLATION_KEYS = {
   unknown: 'common:fallback.unknown',
 };
 
-const EVENT_TYPE_TRANSLATION_KEYS = {
-  'app.started': 'eventTypes.appStarted',
-  'auth.login_success': 'eventTypes.authLoginSuccess',
-  'auth.register_success': 'eventTypes.authRegisterSuccess',
-  'onboarding.started': 'eventTypes.onboardingStarted',
-  'onboarding.pet_created': 'eventTypes.onboardingPetCreated',
-  'meal.logged': 'eventTypes.mealLogged',
-  'meal.deleted': 'eventTypes.mealDeleted',
-  'training.logged': 'eventTypes.trainingLogged',
-  'training.deleted': 'eventTypes.trainingDeleted',
-  'ai.request_started': 'eventTypes.aiRequestStarted',
-  'ai.request_completed': 'eventTypes.aiRequestCompleted',
-  'ai.request_failed': 'eventTypes.aiRequestFailed',
-  'ai.rate_limited': 'eventTypes.aiRateLimited',
-  'ai.provider_failed': 'eventTypes.aiProviderFailed',
-  'sleep.permission_requested': 'eventTypes.sleepPermissionRequested',
-  'sleep.permission_granted': 'eventTypes.sleepPermissionGranted',
-  'sleep.permission_denied': 'eventTypes.sleepPermissionDenied',
-  'sleep.sync_started': 'eventTypes.sleepSyncStarted',
-  'sleep.sync_completed': 'eventTypes.sleepSyncCompleted',
-  'sleep.sync_success': 'eventTypes.sleepSyncCompleted',
-  'sleep.sync_failed': 'eventTypes.sleepSyncFailed',
-};
-
 function getMappedLabel(value, t, mapping) {
   const normalizedValue = String(value ?? '').trim();
 
@@ -100,15 +76,4 @@ export function getSegmentValueLabel(dimension, value, t) {
     default:
       return String(value ?? '').trim() || t('common:fallback.unknown');
   }
-}
-
-export function getEventTypeLabel(value, t) {
-  const normalizedValue = String(value ?? '').trim();
-
-  if (!normalizedValue) {
-    return t('common:fallback.unknown');
-  }
-
-  const translationKey = EVENT_TYPE_TRANSLATION_KEYS[normalizedValue];
-  return translationKey ? t(translationKey) : normalizedValue;
 }
