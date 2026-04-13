@@ -9,6 +9,12 @@
       (() => {
         const storageKey = 'gymbro_analytics_language';
         const fallbackLanguage = 'en';
+        const normalizeLanguage = (value) => {
+          const normalized = String(value || fallbackLanguage).toLowerCase();
+          if (normalized.startsWith('et')) return 'et';
+          if (normalized.startsWith('ru')) return 'ru';
+          return 'en';
+        };
         const savedLanguage = (() => {
           try {
             return localStorage.getItem(storageKey);
@@ -17,9 +23,7 @@
           }
         })();
         const browserLanguage = navigator.language || navigator.languages?.[0] || fallbackLanguage;
-        const initialLanguage = String(savedLanguage || browserLanguage || fallbackLanguage).toLowerCase().startsWith('ru')
-          ? 'ru'
-          : 'en';
+        const initialLanguage = normalizeLanguage(savedLanguage || browserLanguage || fallbackLanguage);
 
         document.documentElement.lang = initialLanguage;
       })();

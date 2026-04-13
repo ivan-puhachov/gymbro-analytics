@@ -5,6 +5,7 @@ import { normalizeLanguage } from '../i18n';
 const LANGUAGE_OPTIONS = [
   { value: 'en', labelKey: 'language.english', ariaKey: 'language.switchToEnglish' },
   { value: 'ru', labelKey: 'language.russian', ariaKey: 'language.switchToRussian' },
+  { value: 'et', labelKey: 'language.estonian', ariaKey: 'language.switchToEstonian' },
 ];
 
 export default function LanguageToggle({ className = '' }) {
@@ -27,7 +28,7 @@ export default function LanguageToggle({ className = '' }) {
             onClick={() => i18n.changeLanguage(option.value)}
             aria-pressed={isActive}
             aria-label={t(option.ariaKey)}
-            className={`min-w-[3rem] rounded-md px-3 py-1.5 text-sm font-semibold transition-colors ${
+            className={`min-w-[2.75rem] whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm font-semibold transition-colors ${
               isActive
                 ? 'bg-blue-500 text-white'
                 : 'text-gray-400 hover:bg-gray-800 hover:text-white'

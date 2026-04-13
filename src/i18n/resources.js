@@ -997,4 +997,486 @@ resources.ru.common.dataMode = {
   },
 };
 
+resources.en.common.language = {
+  ...resources.en.common.language,
+  estonian: 'ET',
+  switchToEstonian: 'Switch language to Estonian',
+};
+
+resources.ru.common.language = {
+  ...resources.ru.common.language,
+  estonian: 'ET',
+  switchToEstonian: '\u041f\u0435\u0440\u0435\u043a\u043b\u044e\u0447\u0438\u0442\u044c \u044f\u0437\u044b\u043a \u043d\u0430 \u044d\u0441\u0442\u043e\u043d\u0441\u043a\u0438\u0439',
+};
+
+resources.et = {
+  common: {
+    appName: 'GymBro Analytics',
+    language: {
+      english: 'EN',
+      russian: 'RU',
+      estonian: 'ET',
+      selector: 'Keele valija',
+      switchToEnglish: 'Vaheta keel inglise keeleks',
+      switchToRussian: 'Vaheta keel vene keeleks',
+      switchToEstonian: 'Vaheta keel eesti keeleks',
+    },
+    actions: {
+      logout: 'Logi v\u00e4lja',
+      close: 'Sulge',
+    },
+    states: {
+      error: 'Viga',
+    },
+    fallback: {
+      unknown: 'Teadmata',
+    },
+    units: {
+      ms: 'ms',
+    },
+    dataMode: {
+      selector: 'Andmere\u017eiimi valija',
+      production: 'Tootmine',
+      test: 'Test',
+      switchToProduction: 'Kasuta tootmise anal\u00fc\u00fcsiandmeid',
+      switchToTest: 'Kasuta test-anal\u00fc\u00fcsiandmeid',
+      badges: {
+        production: 'Tootmisandmed',
+        test: 'TESTANDMED',
+      },
+    },
+  },
+  auth: {
+    pageTitle: 'GymBro administraatori sisselogimine',
+    loading: 'Autentimist laaditakse...',
+    accessDeniedAlert: 'Juurdep\u00e4\u00e4s keelatud. Vajalikud on administraatori \u00f5igused.',
+    login: {
+      title: 'GymBro Admin',
+      emailPlaceholder: 'E-post',
+      passwordPlaceholder: 'Parool',
+      submit: 'Logi juhtpaneelile sisse',
+      errors: {
+        notAdmin: 'Juurdep\u00e4\u00e4s keelatud. Sul puuduvad administraatori \u00f5igused.',
+        invalidCredentials: 'Sisselogimine eba\u00f5nnestus. Kontrolli andmeid.',
+      },
+    },
+  },
+  dashboard: {
+    pageTitle: 'GymBro Analytics juhtpaneel',
+    title: 'GymBro Analytics',
+    headerFallback: 'Juhtpaneel',
+    navigation: {
+      overview: '\u00dclevaade',
+      analytics: 'Anal\u00fc\u00fctika',
+      demographics: 'Demograafia',
+      telemetry: 'Telemeetria',
+      system: 'S\u00fcsteem',
+    },
+    loading: 'Anal\u00fc\u00fctika andmeid laaditakse...',
+    loadFailed: 'Aruannete laadimine eba\u00f5nnestus.',
+    filters: {
+      startDate: 'Alguskuup\u00e4ev',
+      endDate: 'L\u00f5ppkuup\u00e4ev',
+      granularity: 'Granulaarsus',
+      options: {
+        hour: 'Tund',
+        day: 'P\u00e4ev',
+        week: 'N\u00e4dal',
+        month: 'Kuu',
+      },
+    },
+    overview: {
+      totalEngagements: 'Kaasamisi kokku',
+      onboardedUsers: 'Onboardingu l\u00e4binud kasutajad',
+      todayDau: 'T\u00e4nane DAU',
+      recentApiErrors: 'Hiljutised API vead',
+      charts: {
+        dau: 'P\u00e4evased aktiivsed kasutajad (DAU)',
+        funnel: 'Globaalne onboardingulehter',
+      },
+      errors: {
+        dau: 'DAU andmete laadimine eba\u00f5nnestus.',
+        onboarding: 'Onboardingu andmete laadimine eba\u00f5nnestus.',
+      },
+      funnel: {
+        appInstalled: 'Rakendus avatud',
+        registered: 'Registreerunud',
+        onboarding: 'Onboarding',
+        createdPet: 'Lemmik loodud',
+      },
+    },
+    telemetry: {
+      charts: {
+        hourly: 'Tunnip\u00f5hine aktiivsuse diagnostika',
+        breakdown: 'Telemeetria s\u00fcndmuste jaotus',
+        sleep: 'Une telemeetria',
+        hourlyDescription: 'Tallinna ajas praegune tunniraporti aken. See raport ei j\u00e4rgi rangelt juhtpaneeli kuup\u00e4evafiltreid.',
+      },
+      errors: {
+        hourly: 'Tunnip\u00f5hise aktiivsuse laadimine eba\u00f5nnestus.',
+        breakdown: 'Telemeetria andmete laadimine eba\u00f5nnestus.',
+        sleep: 'Une telemeetria andmete laadimine eba\u00f5nnestus.',
+      },
+      empty: {
+        breakdown: 'Telemeetria s\u00fcndmusi pole veel salvestatud.',
+        sleep: 'Une telemeetria andmed pole veel saadaval.',
+        hourly: 'Tunnip\u00f5hised diagnostikaandmed pole veel saadaval.',
+      },
+      overview: {
+        title: 'Diagnostika \u00fclevaade',
+        description: 'Operatiivne aktiivsus ja instrumentatsiooni seis praegusest tunniraporti aknast.',
+        metrics: {
+          telemetryEvents: {
+            title: 'Telemeetria s\u00fcndmused',
+            subtitle: 'Praegune raportiaken',
+          },
+          frontendEvents: {
+            title: 'Frontend-s\u00fcndmused',
+            subtitle: 'Logitud kliendi API kaudu',
+          },
+          backendEvents: {
+            title: 'Backend-s\u00fcndmused',
+            subtitle: 'Logitud backend-teenuste poolt',
+          },
+          aiSuccess: {
+            title: '\u00d5nnestunud AI p\u00e4ringud',
+            subtitle: 'L\u00f5petatud AI p\u00e4ringud',
+          },
+        },
+      },
+    },
+    demographics: {
+      usageOverview: {
+        title: 'Kasutuse \u00fclevaade',
+        description: 'Valitud kuup\u00e4evavahemiku globaalne p\u00e4ringuaktiivsus.',
+        error: 'Kasutuse kokkuv\u00f5tte laadimine eba\u00f5nnestus.',
+        metrics: {
+          totalRequests: {
+            title: 'P\u00e4ringuid kokku',
+            subtitle: 'Valitud kuup\u00e4evavahemik',
+          },
+          activeUsers: {
+            title: 'Aktiivsed kasutajad',
+            subtitle: 'Mitte-admin kasutajad',
+          },
+          avgRequestsPerUser: {
+            title: 'Keskm. p\u00e4ringuid kasutaja kohta',
+            subtitle: 'Aktiivsete kasutajate l\u00f5ikes',
+          },
+          avgTokens: {
+            title: 'Keskm. tokeneid',
+            subtitle: 'P\u00e4ringu kohta',
+          },
+          avgResponseTime: {
+            title: 'Keskm. vastamisaeg',
+            subtitle: 'P\u00e4ringu kohta',
+          },
+        },
+      },
+      userDistribution: {
+        title: 'Kasutajate jaotus',
+        description: 'Kuidas kasutajad jagunevad saadaolevate demograafiliste kategooriate vahel.',
+        charts: {
+          age: 'Kasutajad vanuser\u00fchma j\u00e4rgi',
+          gender: 'Kasutajad soo j\u00e4rgi',
+          weight: 'Kasutajad kaalu j\u00e4rgi',
+          height: 'Kasutajad pikkuse j\u00e4rgi',
+        },
+        errors: {
+          age: 'Vanuser\u00fchmade jaotuse laadimine eba\u00f5nnestus.',
+          gender: 'Soolise jaotuse laadimine eba\u00f5nnestus.',
+          weight: 'Kaalujaotuse laadimine eba\u00f5nnestus.',
+          height: 'Pikkuse jaotuse laadimine eba\u00f5nnestus.',
+        },
+        empty: {
+          age: 'Vanuser\u00fchmade jaotust pole veel saadaval.',
+          gender: 'Soolist jaotust pole veel saadaval.',
+          weight: 'Kaalujaotust pole veel saadaval.',
+          height: 'Pikkuse jaotust pole veel saadaval.',
+        },
+      },
+      segmentComparison: {
+        title: 'Segmentide v\u00f5rdlus',
+        description: 'Valitud perioodi k\u00f5ige ja k\u00f5ige v\u00e4hem aktiivsete demograafiliste segmentide otsene v\u00f5rdlus.',
+        error: 'Segmentide v\u00f5rdluse laadimine eba\u00f5nnestus.',
+        empty: 'Segmentide v\u00f5rdlemiseks pole veel piisavalt andmeid.',
+        labels: {
+          topSegment: 'Parim segment',
+          bottomSegment: 'N\u00f5rgim segment',
+          metric: 'M\u00f5\u00f5dik',
+          gap: 'Vahe',
+          differencePercent: 'Erinevus %',
+        },
+        dimensions: {
+          age: 'Vanus',
+          gender: 'Sugu',
+          weight: 'Kaal',
+          height: 'Pikkus',
+        },
+        metrics: {
+          requests_count: 'P\u00e4ringud',
+          avg_requests: 'Keskm. p\u00e4ringud',
+        },
+        summary: '{{top}} edestas segmenti {{bottom}} valitud perioodil {{percent}}% v\u00f5rra.',
+      },
+      usageBySegment: {
+        title: 'Kasutus segmentide l\u00f5ikes',
+        description: 'L\u00fclitu p\u00e4ringumahu, keskmiste tokenite ja keskmise vastamisaja vahel valitud kuup\u00e4evavahemikus.',
+        charts: {
+          age: 'Vanuser\u00fchmad m\u00f5\u00f5diku {{metric}} j\u00e4rgi',
+          gender: 'Sugu m\u00f5\u00f5diku {{metric}} j\u00e4rgi',
+          weight: 'Kaal m\u00f5\u00f5diku {{metric}} j\u00e4rgi',
+          height: 'Pikkus m\u00f5\u00f5diku {{metric}} j\u00e4rgi',
+        },
+        errors: {
+          age: 'Vanuser\u00fchma anal\u00fc\u00fctika laadimine eba\u00f5nnestus.',
+          gender: 'Soo andmete laadimine eba\u00f5nnestus.',
+          weight: 'Kaalu andmete laadimine eba\u00f5nnestus.',
+          height: 'Pikkuse andmete laadimine eba\u00f5nnestus.',
+        },
+        empty: {
+          age: 'Vanuser\u00fchma anal\u00fc\u00fctika pole veel saadaval.',
+          gender: 'Soo andmed pole saadaval.',
+          weight: 'Kaalu andmed pole saadaval.',
+          height: 'Pikkuse andmed pole saadaval.',
+        },
+      },
+      metricToggleLabel: 'Segmendi m\u00f5\u00f5dik',
+      metricOptions: {
+        requests: 'P\u00e4ringud',
+        avgTokens: 'Keskm. tokenid',
+        avgResponseTime: 'Keskm. vastamisaeg',
+      },
+    },
+    system: {
+      charts: {
+        aiHealth: 'AI teenusepakkuja seisund',
+        requestsOverTime: 'P\u00e4ringud ajas',
+      },
+      errors: {
+        aiHealth: 'AI terviseandmete laadimine eba\u00f5nnestus.',
+        activityTimeline: 'Aktiivsuse ajajoone laadimine eba\u00f5nnestus.',
+      },
+      empty: {
+        activityTimeline: 'Selles vahemikus pole aktiivsusandmeid.',
+      },
+    },
+    modal: {
+      onboardedUsers: {
+        title: 'Onboardingu l\u00e4binud kasutajad',
+        searchPlaceholder: 'Otsi e-posti j\u00e4rgi...',
+        loading: 'Onboardingu l\u00e4binud kasutajaid laaditakse...',
+        error: 'Onboardingu l\u00e4binud kasutajate laadimine eba\u00f5nnestus.',
+        empty: 'Onboardingu l\u00e4binud kasutajaid ei leitud.',
+        noMatches: 'Sobivaid onboardingu l\u00e4binud kasutajaid ei leitud.',
+      },
+    },
+    tooltips: {
+      usageMetrics: {
+        requests: 'P\u00e4ringud',
+        avgTokens: 'Keskm. tokenid',
+        avgResponseTime: 'Keskm. vastamisaeg',
+      },
+    },
+    chartSeries: {
+      activeUsers: 'Aktiivsed kasutajad',
+      aiSuccess: '\u00d5nnestunud AI p\u00e4ringud',
+      telemetryEvents: 'Telemeetria s\u00fcndmused',
+      count: 'Arv',
+      users: 'Kasutajad',
+      requests: 'P\u00e4ringud',
+      avgRequests: 'Keskm. p\u00e4ringud',
+      success: '\u00d5nnestunud',
+      rateLimited: 'Piirang rakendus',
+      providerErrors: 'Teenusepakkuja vead',
+      activity: 'Aktiivsus',
+    },
+    values: {
+      ageGroups: {
+        lt18: '<18',
+        from18to24: '18-24',
+        from25to34: '25-34',
+        from35to44: '35-44',
+        from45to54: '45-54',
+        from55Plus: '55+',
+      },
+      gender: {
+        female: 'Naine',
+        male: 'Mees',
+        other: 'Muu',
+      },
+      weightBuckets: {
+        lt60: '<60',
+        from60to75: '60-75',
+        from75to90: '75-90',
+        from90Plus: '90+',
+      },
+      heightBuckets: {
+        lt160: '<160',
+        from160to175: '160-175',
+        from175to190: '175-190',
+        from190Plus: '190+',
+      },
+    },
+    eventTypes: {
+      appStarted: 'Rakenduse k\u00e4ivitus',
+      authLoginSuccess: 'Sisselogimine \u00f5nnestus',
+      authRegisterSuccess: 'Registreerimine \u00f5nnestus',
+      onboardingStarted: 'Onboarding alustatud',
+      onboardingPetCreated: 'Lemmik loodud',
+      mealLogged: 'Toidukord lisatud',
+      mealDeleted: 'Toidukord kustutatud',
+      trainingLogged: 'Treening lisatud',
+      trainingDeleted: 'Treening kustutatud',
+      aiRequestStarted: 'AI p\u00e4ring alustatud',
+      aiRequestCompleted: 'AI p\u00e4ring l\u00f5petatud',
+      aiRequestFailed: 'AI p\u00e4ring eba\u00f5nnestus',
+      aiRateLimited: 'AI piirang rakendus',
+      aiProviderFailed: 'AI teenusepakkuja viga',
+      sleepPermissionRequested: 'Une loa p\u00e4ring',
+      sleepPermissionGranted: 'Une luba antud',
+      sleepPermissionDenied: 'Une luba keelatud',
+      sleepSyncStarted: 'Une s\u00fcnkroniseerimine alustatud',
+      sleepSyncCompleted: 'Une s\u00fcnkroniseerimine l\u00f5petatud',
+      sleepSyncFailed: 'Une s\u00fcnkroniseerimine eba\u00f5nnestus',
+    },
+    analytics: {
+      usageOverview: {
+        title: 'Kasutuse \u00fclevaade',
+        description: 'Valitud kuup\u00e4evavahemiku peamised AI kasutuse KPI-d.',
+        error: 'Kasutuse \u00fclevaate laadimine eba\u00f5nnestus.',
+        metrics: {
+          totalRequests: {
+            title: 'AI p\u00e4ringuid kokku',
+            subtitle: 'Valitud kuup\u00e4evavahemik',
+          },
+          activeUsers: {
+            title: 'Aktiivsed AI kasutajad',
+            subtitle: 'Vahemikup\u00f5hised p\u00e4ringute tegijad',
+          },
+          requestsPerActiveUser: {
+            title: 'P\u00e4ringuid aktiivse kasutaja kohta',
+            subtitle: 'Aktiivsete AI kasutajate l\u00f5ikes',
+          },
+          avgTokensPerRequest: {
+            title: 'Keskm. tokeneid p\u00e4ringu kohta',
+            subtitle: 'Valitud kuup\u00e4evavahemik',
+          },
+          avgResponseTime: {
+            title: 'Keskm. vastamisaeg',
+            subtitle: 'Valitud kuup\u00e4evavahemik',
+          },
+          totalOnboardedUsers: {
+            title: 'Onboardingu l\u00e4binud kasutajaid kokku',
+            subtitle: 'K\u00f5ik onboardingu l\u00e4binud kasutajad',
+            subtitleFallback: 'Varuvariant onboardingulehtri raportist',
+          },
+        },
+      },
+      usageTrends: {
+        title: 'Kasutustrendid',
+        description: 'L\u00fclitu p\u00e4ringute, tokenite ja keskmise vastamisaja vahel valitud kuup\u00e4evavahemikus.',
+        metricToggleLabel: 'Trendim\u00f5\u00f5dik',
+        chartTitle: '{{metric}} ajas',
+        error: 'Kasutustrendi andmete laadimine eba\u00f5nnestus.',
+        empty: 'Selles vahemikus pole trendiandmeid.',
+        metrics: {
+          requests: 'P\u00e4ringud',
+          tokens: 'Tokenid',
+          avgResponseTime: 'Keskm. vastamisaeg',
+        },
+      },
+      userIntensity: {
+        title: 'Kasutajate intensiivsus',
+        description: 'Praegune /reports/users hetkepilt k\u00f5ige aktiivsematest AI kasutajatest. See jaotis ei j\u00e4rgi rangelt juhtpaneeli kuup\u00e4evafiltreid.',
+        charts: {
+          intensity: 'Tippkasutajad p\u00e4ringumahu j\u00e4rgi',
+        },
+        table: {
+          title: 'Tippkasutajad',
+          description: 'P\u00e4ringud, seansid, tokenid, vastamisaeg ja piirangute surve kasutaja kaupa.',
+          headers: {
+            user: 'Kasutaja',
+            requests: 'P\u00e4ringud',
+            sessions: 'Seansid',
+            totalTokens: 'Tokeneid kokku',
+            avgResponseTime: 'Keskm. vastamisaeg',
+            rateLimits: 'Piirangud',
+          },
+        },
+        errors: {
+          users: 'Kasutajaaruannete laadimine eba\u00f5nnestus.',
+        },
+        empty: {
+          users: 'Kasutajate kasutusandmed pole veel saadaval.',
+        },
+      },
+      adoption: {
+        title: 'Kasutuselev\u00f5tt ja konversioon',
+        description: 'Kuidas onboardingu l\u00f5petamine seostub hilisema AI kasutusega.',
+        metrics: {
+          totalOnboardedUsers: {
+            title: 'Onboardingu l\u00e4binud kasutajaid kokku',
+            subtitle: 'K\u00f5ik onboardingu l\u00f5puleviimised',
+          },
+          onboardedInRange: {
+            title: 'Vahemikus l\u00e4binud',
+            subtitle: 'Onboardingu l\u00f5petamise kuup\u00e4eva alusel',
+          },
+          zeroUsage: {
+            title: 'AI kasutus puudub',
+            subtitle: 'Onboardingu l\u00e4binud kasutajad ilma AI p\u00e4ringuteta',
+          },
+          avgRequestsPerOnboarded: {
+            title: 'Keskm. p\u00e4ringuid onboardingu l\u00e4binud kasutaja kohta',
+            subtitle: 'Praegune k\u00f5igi aegade kasutuse hetkepilt',
+          },
+        },
+        charts: {
+          onboardedOverTime: 'Onboardingu l\u00e4binud kasutajad ajas',
+          onboardedOverTimeDescription: 'Grupeeritud olemasolevast onboardingu l\u00e4binud kasutajate nimekirjast l\u00f5petamise kuup\u00e4eva j\u00e4rgi.',
+          onboardedSeries: 'Onboardingu l\u00e4binud kasutajad',
+        },
+        errors: {
+          onboarded: 'Onboardingu l\u00e4binud kasutajate laadimine eba\u00f5nnestus.',
+        },
+        empty: {
+          onboarded: 'Valitud vahemikus ei leitud onboardingu l\u00e4binud kasutajaid.',
+        },
+      },
+      engagement: {
+        title: 'Kaasatus vs AI kasutus',
+        description: 'V\u00f5rdle toidukordade ja treeningute kaasatuse s\u00fcndmusi AI p\u00e4ringute aktiivsusega. See jaotis kasutab praegusi raporti hetkepilte, mitte n\u00e4htavaid kuup\u00e4evafiltreid.',
+        metrics: {
+          engagedAvgRequests: {
+            title: 'Keskm. p\u00e4ringuid kaasatud kasutajatel',
+            subtitle: 'Kasutajad toidukorra v\u00f5i treeningu s\u00fcndmustega',
+          },
+          noEngagementAvgRequests: {
+            title: 'Keskm. p\u00e4ringuid ilma kaasatuseta',
+            subtitle: 'Kasutajad, kellel pole toidu ega treeningu s\u00fcndmusi',
+          },
+          overlapUsers: {
+            title: 'M\u00f5lema signaaliga kasutajad',
+            subtitle: 'Kasutajad kaasatuse s\u00fcndmuste ja AI p\u00e4ringutega',
+          },
+        },
+        charts: {
+          scatter: 'Kaasatus vs AI p\u00e4ringud',
+        },
+        axis: {
+          engagement: 'Kaasatuse s\u00fcndmused',
+          requests: 'AI p\u00e4ringud',
+        },
+        errors: {
+          engagement: 'Kaasatuse v\u00f5rdlusandmete laadimine eba\u00f5nnestus.',
+        },
+        empty: {
+          engagement: 'Kaasatuse ja AI kasutuse v\u00f5rdlemiseks pole veel piisavalt andmeid.',
+        },
+      },
+    },
+  },
+};
+
 export default resources;

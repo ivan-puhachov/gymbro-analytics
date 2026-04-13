@@ -6,7 +6,10 @@ export const LANGUAGE_STORAGE_KEY = 'gymbro_analytics_language';
 export const DEFAULT_LANGUAGE = 'en';
 
 export function normalizeLanguage(language) {
-  return String(language || DEFAULT_LANGUAGE).toLowerCase().startsWith('ru') ? 'ru' : 'en';
+  const normalized = String(language || DEFAULT_LANGUAGE).toLowerCase();
+  if (normalized.startsWith('et')) return 'et';
+  if (normalized.startsWith('ru')) return 'ru';
+  return 'en';
 }
 
 function getSavedLanguage() {
@@ -41,7 +44,7 @@ i18n
     resources,
     lng: initialLanguage,
     fallbackLng: DEFAULT_LANGUAGE,
-    supportedLngs: ['en', 'ru'],
+    supportedLngs: ['en', 'ru', 'et'],
     ns: ['common', 'auth', 'dashboard'],
     defaultNS: 'common',
     load: 'languageOnly',
