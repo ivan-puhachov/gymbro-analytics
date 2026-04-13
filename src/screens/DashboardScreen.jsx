@@ -17,7 +17,7 @@ import {
 
 const ChartCard = ({ title, children }) => (
   <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-sm flex flex-col items-center">
-    <h3 className="text-lg font-semibold text-gray-300 mb-4 self-start">{title}</h3>
+    <h3 className="text-lg font-semibold text-gray-300 mb-4 self-start leading-snug break-words">{title}</h3>
     <div className="w-full h-64">
       {children}
     </div>
@@ -33,9 +33,9 @@ const SectionHeader = ({ title, description }) => (
 
 const MetricCard = ({ title, value, subtitle }) => (
   <div className="bg-gray-800 p-5 rounded-xl border border-gray-700 shadow-sm">
-    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">{title}</p>
+    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500 leading-snug break-words">{title}</p>
     <p className="text-2xl font-bold text-white mt-3">{value}</p>
-    {subtitle && <p className="text-sm text-gray-400 mt-1">{subtitle}</p>}
+    {subtitle && <p className="text-sm text-gray-400 mt-1 leading-relaxed break-words">{subtitle}</p>}
   </div>
 );
 
@@ -65,8 +65,8 @@ const UsageMetricsTooltip = ({ active, payload, label, labelKey }) => {
   const msSuffix = ` ${t('common.units.ms')}`;
 
   return (
-    <div className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 shadow-lg">
-      <p className="text-sm font-semibold text-white mb-2">{labelValue}</p>
+    <div className="max-w-xs bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 shadow-lg">
+      <p className="text-sm font-semibold text-white mb-2 break-words">{labelValue}</p>
       <div className="space-y-1 text-sm text-gray-300">
         <p>{t('dashboard.tooltips.usageMetrics.requests')}: {formatMetricValue(point.requests_count, i18n.resolvedLanguage)}</p>
         <p>{t('dashboard.tooltips.usageMetrics.avgTokens')}: {formatMetricValue(point.avg_tokens, i18n.resolvedLanguage)}</p>
@@ -82,8 +82,10 @@ const UsageMetricsTooltip = ({ active, payload, label, labelKey }) => {
 const SegmentComparisonCard = ({ comparison }) => {
   const { t, i18n } = useTranslation(['dashboard', 'common']);
   const language = i18n.resolvedLanguage;
-  const topSegmentLabel = getSegmentValueLabel(comparison.dimension, comparison.top_segment, t);
-  const bottomSegmentLabel = getSegmentValueLabel(comparison.dimension, comparison.bottom_segment, t);
+  const dimensionKey = String(comparison.dimension || '').trim().toLowerCase();
+  const metricKey = String(comparison.metric || '').trim();
+  const topSegmentLabel = getSegmentValueLabel(dimensionKey, comparison.top_segment, t);
+  const bottomSegmentLabel = getSegmentValueLabel(dimensionKey, comparison.bottom_segment, t);
   const backendSummary = typeof comparison.summary === 'string' ? comparison.summary.trim() : '';
   const localizedSummary = t('dashboard.demographics.segmentComparison.summary', {
     top: topSegmentLabel,
@@ -94,8 +96,8 @@ const SegmentComparisonCard = ({ comparison }) => {
   return (
     <div className="bg-gray-800 p-5 rounded-xl border border-gray-700 shadow-sm">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
-        {t(`dashboard.demographics.segmentComparison.dimensions.${comparison.dimension}`, {
-          defaultValue: comparison.dimension,
+        {t(`dashboard.demographics.segmentComparison.dimensions.${dimensionKey}`, {
+          defaultValue: dimensionKey || t('common.fallback.unknown'),
         })}
       </p>
       <div className="space-y-3 mt-4 text-sm">
@@ -114,8 +116,8 @@ const SegmentComparisonCard = ({ comparison }) => {
         <div className="flex items-start justify-between gap-4">
           <span className="text-gray-400">{t('dashboard.demographics.segmentComparison.labels.metric')}</span>
           <span className="text-right text-white font-medium">
-            {t(`dashboard.demographics.segmentComparison.metrics.${comparison.metric}`, {
-              defaultValue: comparison.metric,
+            {t(`dashboard.demographics.segmentComparison.metrics.${metricKey}`, {
+              defaultValue: metricKey || t('common.fallback.unknown'),
             })}
           </span>
         </div>
@@ -490,25 +492,25 @@ export default function DashboardScreen() {
           </h1>
         </header>
 
-        <div className="flex flex-wrap items-center gap-4 mb-6 p-4 bg-gray-800 rounded-xl border border-gray-700 shadow-sm">
+        <div className="flex flex-wrap items-start sm:items-center gap-4 mb-6 p-4 bg-gray-800 rounded-xl border border-gray-700 shadow-sm">
           <div className="flex items-center gap-2">
-            <label className="text-gray-400 text-sm font-semibold">{t('dashboard.filters.startDate')}:</label>
-            <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm" />
+            <label className="text-gray-400 text-sm font-semibold whitespace-nowrap">{t('dashboard.filters.startDate')}:</label>
+            <input aria-label={t('dashboard.filters.startDate')} type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm" />
           </div>
           <div className="flex items-center gap-2">
-            <label className="text-gray-400 text-sm font-semibold">{t('dashboard.filters.endDate')}:</label>
-            <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm" />
+            <label className="text-gray-400 text-sm font-semibold whitespace-nowrap">{t('dashboard.filters.endDate')}:</label>
+            <input aria-label={t('dashboard.filters.endDate')} type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm" />
           </div>
           <div className="flex items-center gap-2">
-            <label className="text-gray-400 text-sm font-semibold">{t('dashboard.filters.granularity')}:</label>
-            <select value={granularity} onChange={e => setGranularity(e.target.value)} className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm">
+            <label className="text-gray-400 text-sm font-semibold whitespace-nowrap">{t('dashboard.filters.granularity')}:</label>
+            <select aria-label={t('dashboard.filters.granularity')} value={granularity} onChange={e => setGranularity(e.target.value)} className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm">
               <option value="hour">{t('dashboard.filters.options.hour')}</option>
               <option value="day">{t('dashboard.filters.options.day')}</option>
               <option value="week">{t('dashboard.filters.options.week')}</option>
               <option value="month">{t('dashboard.filters.options.month')}</option>
             </select>
           </div>
-          <LanguageToggle className="ml-auto" />
+          <LanguageToggle className="w-full justify-center sm:ml-auto sm:w-auto shrink-0" />
         </div>
 
         {activeTab === 'overview' && (
@@ -1025,6 +1027,7 @@ export default function DashboardScreen() {
                 <div className="mb-4">
                   <input
                     type="text"
+                    aria-label={t('dashboard.modal.onboardedUsers.searchPlaceholder')}
                     placeholder={t('dashboard.modal.onboardedUsers.searchPlaceholder')}
                     value={modalSearch}
                     onChange={e => setModalSearch(e.target.value)}

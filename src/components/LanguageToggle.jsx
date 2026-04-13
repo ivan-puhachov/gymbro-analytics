@@ -13,7 +13,7 @@ export default function LanguageToggle({ className = '' }) {
 
   return (
     <div
-      className={`inline-flex items-center rounded-lg border border-gray-700 bg-gray-900 p-1 ${className}`.trim()}
+      className={`inline-flex items-center shrink-0 rounded-lg border border-gray-700 bg-gray-900 p-1 ${className}`.trim()}
       role="group"
       aria-label={t('common.language.selector')}
     >

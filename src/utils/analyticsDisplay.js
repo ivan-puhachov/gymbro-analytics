@@ -5,6 +5,7 @@ const AGE_GROUP_TRANSLATION_KEYS = {
   '35-44': 'dashboard.values.ageGroups.from35to44',
   '45-54': 'dashboard.values.ageGroups.from45to54',
   '55+': 'dashboard.values.ageGroups.from55Plus',
+  unknown: 'common.fallback.unknown',
 };
 
 const GENDER_TRANSLATION_KEYS = {
@@ -55,12 +56,19 @@ const EVENT_TYPE_TRANSLATION_KEYS = {
 };
 
 function getMappedLabel(value, t, mapping) {
-  if (value == null || value === '') {
+  const normalizedValue = String(value ?? '').trim();
+
+  if (!normalizedValue) {
     return t('common.fallback.unknown');
   }
 
-  const translationKey = mapping[String(value)];
-  return translationKey ? t(translationKey) : String(value);
+  const lowerCasedValue = normalizedValue.toLowerCase();
+  const lookupValue = ['unknown', 'null', 'undefined', 'n/a', 'na', 'none'].includes(lowerCasedValue)
+    ? 'unknown'
+    : normalizedValue;
+  const translationKey = mapping[lookupValue];
+
+  return translationKey ? t(translationKey) : lookupValue;
 }
 
 export function getAgeGroupLabel(value, t) {
@@ -68,7 +76,7 @@ export function getAgeGroupLabel(value, t) {
 }
 
 export function getGenderLabel(value, t) {
-  return getMappedLabel(String(value || '').toLowerCase(), t, GENDER_TRANSLATION_KEYS);
+  return getMappedLabel(String(value || '').trim().toLowerCase(), t, GENDER_TRANSLATION_KEYS);
 }
 
 export function getWeightBucketLabel(value, t) {
@@ -80,7 +88,7 @@ export function getHeightBucketLabel(value, t) {
 }
 
 export function getSegmentValueLabel(dimension, value, t) {
-  switch (dimension) {
+  switch (String(dimension || '').trim().toLowerCase()) {
     case 'age':
       return getAgeGroupLabel(value, t);
     case 'gender':
@@ -90,15 +98,17 @@ export function getSegmentValueLabel(dimension, value, t) {
     case 'height':
       return getHeightBucketLabel(value, t);
     default:
-      return value || t('common.fallback.unknown');
+      return String(value ?? '').trim() || t('common.fallback.unknown');
   }
 }
 
 export function getEventTypeLabel(value, t) {
-  if (!value) {
+  const normalizedValue = String(value ?? '').trim();
+
+  if (!normalizedValue) {
     return t('common.fallback.unknown');
   }
 
-  const translationKey = EVENT_TYPE_TRANSLATION_KEYS[value];
-  return translationKey ? t(translationKey) : value;
+  const translationKey = EVENT_TYPE_TRANSLATION_KEYS[normalizedValue];
+  return translationKey ? t(translationKey) : normalizedValue;
 }
