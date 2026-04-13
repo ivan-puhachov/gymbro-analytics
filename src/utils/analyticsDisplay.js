@@ -1,65 +1,65 @@
 const AGE_GROUP_TRANSLATION_KEYS = {
-  '<18': 'dashboard.values.ageGroups.lt18',
-  '18-24': 'dashboard.values.ageGroups.from18to24',
-  '25-34': 'dashboard.values.ageGroups.from25to34',
-  '35-44': 'dashboard.values.ageGroups.from35to44',
-  '45-54': 'dashboard.values.ageGroups.from45to54',
-  '55+': 'dashboard.values.ageGroups.from55Plus',
-  unknown: 'common.fallback.unknown',
+  '<18': 'values.ageGroups.lt18',
+  '18-24': 'values.ageGroups.from18to24',
+  '25-34': 'values.ageGroups.from25to34',
+  '35-44': 'values.ageGroups.from35to44',
+  '45-54': 'values.ageGroups.from45to54',
+  '55+': 'values.ageGroups.from55Plus',
+  unknown: 'common:fallback.unknown',
 };
 
 const GENDER_TRANSLATION_KEYS = {
-  female: 'dashboard.values.gender.female',
-  male: 'dashboard.values.gender.male',
-  other: 'dashboard.values.gender.other',
-  unknown: 'common.fallback.unknown',
+  female: 'values.gender.female',
+  male: 'values.gender.male',
+  other: 'values.gender.other',
+  unknown: 'common:fallback.unknown',
 };
 
 const WEIGHT_BUCKET_TRANSLATION_KEYS = {
-  '<60': 'dashboard.values.weightBuckets.lt60',
-  '60-75': 'dashboard.values.weightBuckets.from60to75',
-  '75-90': 'dashboard.values.weightBuckets.from75to90',
-  '90+': 'dashboard.values.weightBuckets.from90Plus',
-  unknown: 'common.fallback.unknown',
+  '<60': 'values.weightBuckets.lt60',
+  '60-75': 'values.weightBuckets.from60to75',
+  '75-90': 'values.weightBuckets.from75to90',
+  '90+': 'values.weightBuckets.from90Plus',
+  unknown: 'common:fallback.unknown',
 };
 
 const HEIGHT_BUCKET_TRANSLATION_KEYS = {
-  '<160': 'dashboard.values.heightBuckets.lt160',
-  '160-175': 'dashboard.values.heightBuckets.from160to175',
-  '175-190': 'dashboard.values.heightBuckets.from175to190',
-  '190+': 'dashboard.values.heightBuckets.from190Plus',
-  unknown: 'common.fallback.unknown',
+  '<160': 'values.heightBuckets.lt160',
+  '160-175': 'values.heightBuckets.from160to175',
+  '175-190': 'values.heightBuckets.from175to190',
+  '190+': 'values.heightBuckets.from190Plus',
+  unknown: 'common:fallback.unknown',
 };
 
 const EVENT_TYPE_TRANSLATION_KEYS = {
-  'app.started': 'dashboard.eventTypes.appStarted',
-  'auth.login_success': 'dashboard.eventTypes.authLoginSuccess',
-  'auth.register_success': 'dashboard.eventTypes.authRegisterSuccess',
-  'onboarding.started': 'dashboard.eventTypes.onboardingStarted',
-  'onboarding.pet_created': 'dashboard.eventTypes.onboardingPetCreated',
-  'meal.logged': 'dashboard.eventTypes.mealLogged',
-  'meal.deleted': 'dashboard.eventTypes.mealDeleted',
-  'training.logged': 'dashboard.eventTypes.trainingLogged',
-  'training.deleted': 'dashboard.eventTypes.trainingDeleted',
-  'ai.request_started': 'dashboard.eventTypes.aiRequestStarted',
-  'ai.request_completed': 'dashboard.eventTypes.aiRequestCompleted',
-  'ai.request_failed': 'dashboard.eventTypes.aiRequestFailed',
-  'ai.rate_limited': 'dashboard.eventTypes.aiRateLimited',
-  'ai.provider_failed': 'dashboard.eventTypes.aiProviderFailed',
-  'sleep.permission_requested': 'dashboard.eventTypes.sleepPermissionRequested',
-  'sleep.permission_granted': 'dashboard.eventTypes.sleepPermissionGranted',
-  'sleep.permission_denied': 'dashboard.eventTypes.sleepPermissionDenied',
-  'sleep.sync_started': 'dashboard.eventTypes.sleepSyncStarted',
-  'sleep.sync_completed': 'dashboard.eventTypes.sleepSyncCompleted',
-  'sleep.sync_success': 'dashboard.eventTypes.sleepSyncCompleted',
-  'sleep.sync_failed': 'dashboard.eventTypes.sleepSyncFailed',
+  'app.started': 'eventTypes.appStarted',
+  'auth.login_success': 'eventTypes.authLoginSuccess',
+  'auth.register_success': 'eventTypes.authRegisterSuccess',
+  'onboarding.started': 'eventTypes.onboardingStarted',
+  'onboarding.pet_created': 'eventTypes.onboardingPetCreated',
+  'meal.logged': 'eventTypes.mealLogged',
+  'meal.deleted': 'eventTypes.mealDeleted',
+  'training.logged': 'eventTypes.trainingLogged',
+  'training.deleted': 'eventTypes.trainingDeleted',
+  'ai.request_started': 'eventTypes.aiRequestStarted',
+  'ai.request_completed': 'eventTypes.aiRequestCompleted',
+  'ai.request_failed': 'eventTypes.aiRequestFailed',
+  'ai.rate_limited': 'eventTypes.aiRateLimited',
+  'ai.provider_failed': 'eventTypes.aiProviderFailed',
+  'sleep.permission_requested': 'eventTypes.sleepPermissionRequested',
+  'sleep.permission_granted': 'eventTypes.sleepPermissionGranted',
+  'sleep.permission_denied': 'eventTypes.sleepPermissionDenied',
+  'sleep.sync_started': 'eventTypes.sleepSyncStarted',
+  'sleep.sync_completed': 'eventTypes.sleepSyncCompleted',
+  'sleep.sync_success': 'eventTypes.sleepSyncCompleted',
+  'sleep.sync_failed': 'eventTypes.sleepSyncFailed',
 };
 
 function getMappedLabel(value, t, mapping) {
   const normalizedValue = String(value ?? '').trim();
 
   if (!normalizedValue) {
-    return t('common.fallback.unknown');
+    return t('common:fallback.unknown');
   }
 
   const lowerCasedValue = normalizedValue.toLowerCase();
@@ -98,7 +98,7 @@ export function getSegmentValueLabel(dimension, value, t) {
     case 'height':
       return getHeightBucketLabel(value, t);
     default:
-      return String(value ?? '').trim() || t('common.fallback.unknown');
+      return String(value ?? '').trim() || t('common:fallback.unknown');
   }
 }
 
@@ -106,7 +106,7 @@ export function getEventTypeLabel(value, t) {
   const normalizedValue = String(value ?? '').trim();
 
   if (!normalizedValue) {
-    return t('common.fallback.unknown');
+    return t('common:fallback.unknown');
   }
 
   const translationKey = EVENT_TYPE_TRANSLATION_KEYS[normalizedValue];

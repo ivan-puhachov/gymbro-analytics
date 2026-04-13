@@ -51,7 +51,7 @@ function getTooltipLabelValue(point, labelKey, fallbackLabel, t) {
       }
       return getWeightBucketLabel(point.bucket, t);
     default:
-      return fallbackLabel || t('common.fallback.unknown');
+      return fallbackLabel || t('common:fallback.unknown');
   }
 }
 
@@ -62,16 +62,16 @@ const UsageMetricsTooltip = ({ active, payload, label, labelKey }) => {
 
   const point = payload[0]?.payload || {};
   const labelValue = getTooltipLabelValue(point, labelKey, label, t);
-  const msSuffix = ` ${t('common.units.ms')}`;
+  const msSuffix = ` ${t('common:units.ms')}`;
 
   return (
     <div className="max-w-xs bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 shadow-lg">
       <p className="text-sm font-semibold text-white mb-2 break-words">{labelValue}</p>
       <div className="space-y-1 text-sm text-gray-300">
-        <p>{t('dashboard.tooltips.usageMetrics.requests')}: {formatMetricValue(point.requests_count, i18n.resolvedLanguage)}</p>
-        <p>{t('dashboard.tooltips.usageMetrics.avgTokens')}: {formatMetricValue(point.avg_tokens, i18n.resolvedLanguage)}</p>
+        <p>{t('tooltips.usageMetrics.requests')}: {formatMetricValue(point.requests_count, i18n.resolvedLanguage)}</p>
+        <p>{t('tooltips.usageMetrics.avgTokens')}: {formatMetricValue(point.avg_tokens, i18n.resolvedLanguage)}</p>
         <p>
-          {t('dashboard.tooltips.usageMetrics.avgResponseTime')}:{' '}
+          {t('tooltips.usageMetrics.avgResponseTime')}:{' '}
           {formatMetricValue(point.avg_response_time ?? point.avg_response_time_ms, i18n.resolvedLanguage, { suffix: msSuffix })}
         </p>
       </div>
@@ -87,7 +87,7 @@ const SegmentComparisonCard = ({ comparison }) => {
   const topSegmentLabel = getSegmentValueLabel(dimensionKey, comparison.top_segment, t);
   const bottomSegmentLabel = getSegmentValueLabel(dimensionKey, comparison.bottom_segment, t);
   const backendSummary = typeof comparison.summary === 'string' ? comparison.summary.trim() : '';
-  const localizedSummary = t('dashboard.demographics.segmentComparison.summary', {
+  const localizedSummary = t('demographics.segmentComparison.summary', {
     top: topSegmentLabel,
     bottom: bottomSegmentLabel,
     percent: formatMetricValue(comparison.relative_gap_percent, language),
@@ -96,39 +96,39 @@ const SegmentComparisonCard = ({ comparison }) => {
   return (
     <div className="bg-gray-800 p-5 rounded-xl border border-gray-700 shadow-sm">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
-        {t(`dashboard.demographics.segmentComparison.dimensions.${dimensionKey}`, {
-          defaultValue: dimensionKey || t('common.fallback.unknown'),
+        {t(`demographics.segmentComparison.dimensions.${dimensionKey}`, {
+          defaultValue: dimensionKey || t('common:fallback.unknown'),
         })}
       </p>
       <div className="space-y-3 mt-4 text-sm">
         <div className="flex items-start justify-between gap-4">
-          <span className="text-gray-400">{t('dashboard.demographics.segmentComparison.labels.topSegment')}</span>
+          <span className="text-gray-400">{t('demographics.segmentComparison.labels.topSegment')}</span>
           <span className="text-right text-white font-medium">
             {topSegmentLabel} ({formatMetricValue(comparison.top_value, language)})
           </span>
         </div>
         <div className="flex items-start justify-between gap-4">
-          <span className="text-gray-400">{t('dashboard.demographics.segmentComparison.labels.bottomSegment')}</span>
+          <span className="text-gray-400">{t('demographics.segmentComparison.labels.bottomSegment')}</span>
           <span className="text-right text-white font-medium">
             {bottomSegmentLabel} ({formatMetricValue(comparison.bottom_value, language)})
           </span>
         </div>
         <div className="flex items-start justify-between gap-4">
-          <span className="text-gray-400">{t('dashboard.demographics.segmentComparison.labels.metric')}</span>
+          <span className="text-gray-400">{t('demographics.segmentComparison.labels.metric')}</span>
           <span className="text-right text-white font-medium">
-            {t(`dashboard.demographics.segmentComparison.metrics.${metricKey}`, {
-              defaultValue: metricKey || t('common.fallback.unknown'),
+            {t(`demographics.segmentComparison.metrics.${metricKey}`, {
+              defaultValue: metricKey || t('common:fallback.unknown'),
             })}
           </span>
         </div>
         <div className="flex items-start justify-between gap-4">
-          <span className="text-gray-400">{t('dashboard.demographics.segmentComparison.labels.gap')}</span>
+          <span className="text-gray-400">{t('demographics.segmentComparison.labels.gap')}</span>
           <span className="text-right text-white font-medium">
             {formatMetricValue(comparison.absolute_gap, language)}
           </span>
         </div>
         <div className="flex items-start justify-between gap-4">
-          <span className="text-gray-400">{t('dashboard.demographics.segmentComparison.labels.differencePercent')}</span>
+          <span className="text-gray-400">{t('demographics.segmentComparison.labels.differencePercent')}</span>
           <span className="text-right text-white font-medium">
             {formatMetricValue(comparison.relative_gap_percent, language, { suffix: '%' })}
           </span>
@@ -147,10 +147,10 @@ const SegmentComparisonCard = ({ comparison }) => {
 
 
 const NAV_ITEMS = [
-  { id: 'overview', labelKey: 'dashboard.navigation.overview', icon: LayoutDashboard },
-  { id: 'telemetry', labelKey: 'dashboard.navigation.telemetry', icon: Activity },
-  { id: 'demographics', labelKey: 'dashboard.navigation.demographics', icon: Users },
-  { id: 'system', labelKey: 'dashboard.navigation.system', icon: Cpu },
+  { id: 'overview', labelKey: 'navigation.overview', icon: LayoutDashboard },
+  { id: 'telemetry', labelKey: 'navigation.telemetry', icon: Activity },
+  { id: 'demographics', labelKey: 'navigation.demographics', icon: Users },
+  { id: 'system', labelKey: 'navigation.system', icon: Cpu },
 ];
 
 export default function DashboardScreen() {
@@ -176,7 +176,7 @@ export default function DashboardScreen() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.title = t('dashboard.pageTitle');
+    document.title = t('pageTitle');
   }, [language, t]);
 
   const handleOnboardedClick = async () => {
@@ -303,16 +303,16 @@ export default function DashboardScreen() {
     navigate('/login');
   };
 
-  if (loading) return <div className="flex h-screen items-center justify-center bg-gray-900 text-white">{t('dashboard.loading')}</div>;
-  if (!data) return <div className="flex h-screen items-center justify-center bg-gray-900 text-white">{t('dashboard.loadFailed')}</div>;
+  if (loading) return <div className="flex h-screen items-center justify-center bg-gray-900 text-white">{t('loading')}</div>;
+  if (!data) return <div className="flex h-screen items-center justify-center bg-gray-900 text-white">{t('loadFailed')}</div>;
 
-  const unknownLabel = t('common.fallback.unknown');
-  const msSuffix = ` ${t('common.units.ms')}`;
+  const unknownLabel = t('common:fallback.unknown');
+  const msSuffix = ` ${t('common:units.ms')}`;
   const funnelData = [
-    { stage: t('dashboard.overview.funnel.appInstalled'), count: data.onboarding?.app_started_users || 0 },
-    { stage: t('dashboard.overview.funnel.registered'), count: data.onboarding?.register_success_users || 0 },
-    { stage: t('dashboard.overview.funnel.onboarding'), count: data.onboarding?.onboarding_started_users || 0 },
-    { stage: t('dashboard.overview.funnel.createdPet'), count: data.onboarding?.pet_created_users || 0 },
+    { stage: t('overview.funnel.appInstalled'), count: data.onboarding?.app_started_users || 0 },
+    { stage: t('overview.funnel.registered'), count: data.onboarding?.register_success_users || 0 },
+    { stage: t('overview.funnel.onboarding'), count: data.onboarding?.onboarding_started_users || 0 },
+    { stage: t('overview.funnel.createdPet'), count: data.onboarding?.pet_created_users || 0 },
   ];
 
   const processedAiHealth = (data.aiHealth || []).map((item) => ({
@@ -395,33 +395,33 @@ export default function DashboardScreen() {
   const usageOverviewMetrics = [
     {
       key: 'total_requests',
-      title: t('dashboard.demographics.usageOverview.metrics.totalRequests.title'),
+      title: t('demographics.usageOverview.metrics.totalRequests.title'),
       value: formatMetricValue(usageSummary.total_requests, language, { maximumFractionDigits: 0 }),
-      subtitle: t('dashboard.demographics.usageOverview.metrics.totalRequests.subtitle'),
+      subtitle: t('demographics.usageOverview.metrics.totalRequests.subtitle'),
     },
     {
       key: 'active_users',
-      title: t('dashboard.demographics.usageOverview.metrics.activeUsers.title'),
+      title: t('demographics.usageOverview.metrics.activeUsers.title'),
       value: formatMetricValue(usageSummary.active_users, language, { maximumFractionDigits: 0 }),
-      subtitle: t('dashboard.demographics.usageOverview.metrics.activeUsers.subtitle'),
+      subtitle: t('demographics.usageOverview.metrics.activeUsers.subtitle'),
     },
     {
       key: 'avg_requests_per_user',
-      title: t('dashboard.demographics.usageOverview.metrics.avgRequestsPerUser.title'),
+      title: t('demographics.usageOverview.metrics.avgRequestsPerUser.title'),
       value: formatMetricValue(usageSummary.avg_requests_per_user, language),
-      subtitle: t('dashboard.demographics.usageOverview.metrics.avgRequestsPerUser.subtitle'),
+      subtitle: t('demographics.usageOverview.metrics.avgRequestsPerUser.subtitle'),
     },
     {
       key: 'avg_tokens',
-      title: t('dashboard.demographics.usageOverview.metrics.avgTokens.title'),
+      title: t('demographics.usageOverview.metrics.avgTokens.title'),
       value: formatMetricValue(usageSummary.avg_tokens, language),
-      subtitle: t('dashboard.demographics.usageOverview.metrics.avgTokens.subtitle'),
+      subtitle: t('demographics.usageOverview.metrics.avgTokens.subtitle'),
     },
     {
       key: 'avg_response_time',
-      title: t('dashboard.demographics.usageOverview.metrics.avgResponseTime.title'),
+      title: t('demographics.usageOverview.metrics.avgResponseTime.title'),
       value: formatMetricValue(usageSummary.avg_response_time, language, { suffix: msSuffix }),
-      subtitle: t('dashboard.demographics.usageOverview.metrics.avgResponseTime.subtitle'),
+      subtitle: t('demographics.usageOverview.metrics.avgResponseTime.subtitle'),
     },
   ];
 
@@ -444,7 +444,7 @@ export default function DashboardScreen() {
     : [];
 
   const activeNavItem = NAV_ITEMS.find((item) => item.id === activeTab);
-  const activeTabTitle = activeNavItem ? t(activeNavItem.labelKey) : t('dashboard.headerFallback');
+  const activeTabTitle = activeNavItem ? t(activeNavItem.labelKey) : t('headerFallback');
 
   return (
     <div className="flex h-screen bg-gray-900 overflow-hidden">
@@ -453,7 +453,7 @@ export default function DashboardScreen() {
         <div>
           <div className="p-6 flex items-center border-b border-gray-800">
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">
-              {t('dashboard.title')}
+              {t('title')}
             </span>
           </div>
           <nav className="p-4 space-y-2">
@@ -479,7 +479,7 @@ export default function DashboardScreen() {
         </div>
         <div className="p-4 border-t border-gray-800">
           <button onClick={handleLogout} className="w-full flex items-center px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors">
-            <LogOut size={20} className="mr-3 shrink-0" /> {t('common.actions.logout')}
+            <LogOut size={20} className="mr-3 shrink-0" /> {t('common:actions.logout')}
           </button>
         </div>
       </aside>
@@ -494,20 +494,20 @@ export default function DashboardScreen() {
 
         <div className="flex flex-wrap items-start sm:items-center gap-4 mb-6 p-4 bg-gray-800 rounded-xl border border-gray-700 shadow-sm">
           <div className="flex items-center gap-2">
-            <label className="text-gray-400 text-sm font-semibold whitespace-nowrap">{t('dashboard.filters.startDate')}:</label>
-            <input aria-label={t('dashboard.filters.startDate')} type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm" />
+            <label className="text-gray-400 text-sm font-semibold whitespace-nowrap">{t('filters.startDate')}:</label>
+            <input aria-label={t('filters.startDate')} type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm" />
           </div>
           <div className="flex items-center gap-2">
-            <label className="text-gray-400 text-sm font-semibold whitespace-nowrap">{t('dashboard.filters.endDate')}:</label>
-            <input aria-label={t('dashboard.filters.endDate')} type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm" />
+            <label className="text-gray-400 text-sm font-semibold whitespace-nowrap">{t('filters.endDate')}:</label>
+            <input aria-label={t('filters.endDate')} type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm" />
           </div>
           <div className="flex items-center gap-2">
-            <label className="text-gray-400 text-sm font-semibold whitespace-nowrap">{t('dashboard.filters.granularity')}:</label>
-            <select aria-label={t('dashboard.filters.granularity')} value={granularity} onChange={e => setGranularity(e.target.value)} className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm">
-              <option value="hour">{t('dashboard.filters.options.hour')}</option>
-              <option value="day">{t('dashboard.filters.options.day')}</option>
-              <option value="week">{t('dashboard.filters.options.week')}</option>
-              <option value="month">{t('dashboard.filters.options.month')}</option>
+            <label className="text-gray-400 text-sm font-semibold whitespace-nowrap">{t('filters.granularity')}:</label>
+            <select aria-label={t('filters.granularity')} value={granularity} onChange={e => setGranularity(e.target.value)} className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm">
+              <option value="hour">{t('filters.options.hour')}</option>
+              <option value="day">{t('filters.options.day')}</option>
+              <option value="week">{t('filters.options.week')}</option>
+              <option value="month">{t('filters.options.month')}</option>
             </select>
           </div>
           <LanguageToggle className="w-full justify-center sm:ml-auto sm:w-auto shrink-0" />
@@ -518,10 +518,10 @@ export default function DashboardScreen() {
             <div className="bg-gray-800 p-6 rounded-xl flex items-center shadow-lg border border-gray-700">
               <Activity className="text-blue-400 mr-4" size={32} />
               <div>
-                <p className="text-gray-400">{t('dashboard.overview.totalEngagements')}</p>
+                <p className="text-gray-400">{t('overview.totalEngagements')}</p>
                 <p className="text-2xl font-bold text-white">
                   {errors.engagement ? (
-                    <span className="text-red-400 text-lg">{t('common.states.error')}</span>
+                    <span className="text-red-400 text-lg">{t('common:states.error')}</span>
                   ) : (
                     formatMetricValue(
                       (data.engagement || []).reduce(
@@ -541,10 +541,10 @@ export default function DashboardScreen() {
             >
               <Users className="text-emerald-400 mr-4" size={32} />
               <div>
-                <p className="text-gray-400">{t('dashboard.overview.onboardedUsers')}</p>
+                <p className="text-gray-400">{t('overview.onboardedUsers')}</p>
                 <p className="text-2xl font-bold text-white">
                   {errors.onboarding ? (
-                    <span className="text-red-400 text-lg">{t('common.states.error')}</span>
+                    <span className="text-red-400 text-lg">{t('common:states.error')}</span>
                   ) : (
                     formatMetricValue(data.onboarding?.pet_created_users || 0, language, { maximumFractionDigits: 0 })
                   )}
@@ -554,10 +554,10 @@ export default function DashboardScreen() {
             <div className="bg-gray-800 p-6 rounded-xl flex items-center shadow-lg border border-gray-700">
               <Database className="text-purple-400 mr-4" size={32} />
               <div>
-                <p className="text-gray-400">{t('dashboard.overview.todayDau')}</p>
+                <p className="text-gray-400">{t('overview.todayDau')}</p>
                 <p className="text-2xl font-bold text-white">
                   {errors.dau ? (
-                    <span className="text-red-400 text-lg">{t('common.states.error')}</span>
+                    <span className="text-red-400 text-lg">{t('common:states.error')}</span>
                   ) : (
                     formatMetricValue(data.dau?.length > 0 ? data.dau[0].active_users_count : 0, language, { maximumFractionDigits: 0 })
                   )}
@@ -567,10 +567,10 @@ export default function DashboardScreen() {
             <div className="bg-gray-800 p-6 rounded-xl flex items-center shadow-lg border border-gray-700">
               <ShieldAlert className="text-red-400 mr-4" size={32} />
               <div>
-                <p className="text-gray-400">{t('dashboard.overview.recentApiErrors')}</p>
+                <p className="text-gray-400">{t('overview.recentApiErrors')}</p>
                 <p className="text-2xl font-bold text-white">
                   {errors.aiHealth ? (
-                    <span className="text-red-400 text-lg">{t('common.states.error')}</span>
+                    <span className="text-red-400 text-lg">{t('common:states.error')}</span>
                   ) : (
                     formatMetricValue(data.aiHealth?.length > 0 ? data.aiHealth[0].provider_failures : 0, language, { maximumFractionDigits: 0 })
                   )}
@@ -582,9 +582,9 @@ export default function DashboardScreen() {
 
         {activeTab === 'overview' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            <ChartCard title={t('dashboard.overview.charts.dau')}>
+            <ChartCard title={t('overview.charts.dau')}>
               {errors.dau ? (
-                <div className="flex h-full items-center justify-center text-red-500">{t('dashboard.overview.errors.dau')}</div>
+                <div className="flex h-full items-center justify-center text-red-500">{t('overview.errors.dau')}</div>
               ) : (
                 <ResponsiveContainer>
                   <BarChart data={processedDau}>
@@ -600,16 +600,16 @@ export default function DashboardScreen() {
                       dataKey="active_users_count"
                       fill="#3B82F6"
                       radius={[4, 4, 0, 0]}
-                      name={t('dashboard.chartSeries.activeUsers')}
+                      name={t('chartSeries.activeUsers')}
                     />
                   </BarChart>
                 </ResponsiveContainer>
               )}
             </ChartCard>
 
-            <ChartCard title={t('dashboard.overview.charts.funnel')}>
+            <ChartCard title={t('overview.charts.funnel')}>
               {errors.onboarding ? (
-                <div className="flex h-full items-center justify-center text-red-500">{t('dashboard.overview.errors.onboarding')}</div>
+                <div className="flex h-full items-center justify-center text-red-500">{t('overview.errors.onboarding')}</div>
               ) : (
                 <ResponsiveContainer>
                   <BarChart data={funnelData} layout="vertical">
@@ -621,7 +621,7 @@ export default function DashboardScreen() {
                       contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
                       formatter={(value, name) => [formatMetricValue(value, language), name]}
                     />
-                    <Bar dataKey="count" fill="#10B981" radius={[0, 4, 4, 0]} name={t('dashboard.chartSeries.count')} />
+                    <Bar dataKey="count" fill="#10B981" radius={[0, 4, 4, 0]} name={t('chartSeries.count')} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -631,9 +631,9 @@ export default function DashboardScreen() {
 
         {activeTab === 'telemetry' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            <ChartCard title={t('dashboard.telemetry.charts.hourly')}>
+            <ChartCard title={t('telemetry.charts.hourly')}>
               {errors.hourly ? (
-                <div className="flex h-full items-center justify-center text-red-500">{t('dashboard.telemetry.errors.hourly')}</div>
+                <div className="flex h-full items-center justify-center text-red-500">{t('telemetry.errors.hourly')}</div>
               ) : (
                 <ResponsiveContainer>
                   <AreaChart data={processedHourly}>
@@ -651,7 +651,7 @@ export default function DashboardScreen() {
                       stackId="1"
                       stroke="#8B5CF6"
                       fill="#8B5CF6"
-                      name={t('dashboard.chartSeries.aiSuccess')}
+                      name={t('chartSeries.aiSuccess')}
                     />
                     <Area
                       type="monotone"
@@ -659,16 +659,16 @@ export default function DashboardScreen() {
                       stackId="1"
                       stroke="#3B82F6"
                       fill="#3B82F6"
-                      name={t('dashboard.chartSeries.telemetryEvents')}
+                      name={t('chartSeries.telemetryEvents')}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
               )}
             </ChartCard>
 
-            <ChartCard title={t('dashboard.telemetry.charts.breakdown')}>
+            <ChartCard title={t('telemetry.charts.breakdown')}>
               {errors.eventsBreakdown ? (
-                <div className="flex h-full items-center justify-center text-red-500">{t('dashboard.telemetry.errors.breakdown')}</div>
+                <div className="flex h-full items-center justify-center text-red-500">{t('telemetry.errors.breakdown')}</div>
               ) : eventsBreakdownData.length > 0 ? (
                 <ResponsiveContainer>
                   <BarChart data={eventsBreakdownData} layout="vertical">
@@ -680,19 +680,19 @@ export default function DashboardScreen() {
                       contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
                       formatter={(value, name) => [formatMetricValue(value, language), name]}
                     />
-                    <Bar dataKey="count" fill="#8B5CF6" radius={[0, 4, 4, 0]} name={t('dashboard.chartSeries.count')} />
+                    <Bar dataKey="count" fill="#8B5CF6" radius={[0, 4, 4, 0]} name={t('chartSeries.count')} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
                 <div className="flex h-full items-center justify-center text-gray-500">
-                  {t('dashboard.telemetry.empty.breakdown')}
+                  {t('telemetry.empty.breakdown')}
                 </div>
               )}
             </ChartCard>
 
-            <ChartCard title={t('dashboard.telemetry.charts.sleep')}>
+            <ChartCard title={t('telemetry.charts.sleep')}>
               {errors.eventsBreakdown ? (
-                <div className="flex h-full items-center justify-center text-red-500">{t('dashboard.telemetry.errors.sleep')}</div>
+                <div className="flex h-full items-center justify-center text-red-500">{t('telemetry.errors.sleep')}</div>
               ) : sleepTelemetryData.length > 0 ? (
                 <ResponsiveContainer>
                   <BarChart data={sleepTelemetryData} layout="vertical">
@@ -704,12 +704,12 @@ export default function DashboardScreen() {
                       contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
                       formatter={(value, name) => [formatMetricValue(value, language), name]}
                     />
-                    <Bar dataKey="count" fill="#6366F1" radius={[0, 4, 4, 0]} name={t('dashboard.chartSeries.count')} />
+                    <Bar dataKey="count" fill="#6366F1" radius={[0, 4, 4, 0]} name={t('chartSeries.count')} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
                 <div className="flex h-full items-center justify-center text-gray-500">
-                  {t('dashboard.telemetry.empty.sleep')}
+                  {t('telemetry.empty.sleep')}
                 </div>
               )}
             </ChartCard>
@@ -720,12 +720,12 @@ export default function DashboardScreen() {
           <>
             <div className="mb-8">
               <SectionHeader
-                title={t('dashboard.demographics.usageOverview.title')}
-                description={t('dashboard.demographics.usageOverview.description')}
+                title={t('demographics.usageOverview.title')}
+                description={t('demographics.usageOverview.description')}
               />
               {errors.usageSummary ? (
                 <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-sm text-red-500">
-                  {t('dashboard.demographics.usageOverview.error')}
+                  {t('demographics.usageOverview.error')}
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
@@ -743,13 +743,13 @@ export default function DashboardScreen() {
 
             <div className="mb-8">
               <SectionHeader
-                title={t('dashboard.demographics.userDistribution.title')}
-                description={t('dashboard.demographics.userDistribution.description')}
+                title={t('demographics.userDistribution.title')}
+                description={t('demographics.userDistribution.description')}
               />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <ChartCard title={t('dashboard.demographics.userDistribution.charts.age')}>
+            <ChartCard title={t('demographics.userDistribution.charts.age')}>
               {errors.usersByAgeGroup ? (
-                <div className="flex h-full items-center justify-center text-red-500">{t('dashboard.demographics.userDistribution.errors.age')}</div>
+                <div className="flex h-full items-center justify-center text-red-500">{t('demographics.userDistribution.errors.age')}</div>
               ) : usersByAgeGroupData.length > 0 ? (
                 <ResponsiveContainer>
                   <BarChart data={usersByAgeGroupData}>
@@ -761,19 +761,19 @@ export default function DashboardScreen() {
                       contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
                       formatter={(value, name) => [formatMetricValue(value, language), name]}
                     />
-                    <Bar dataKey="users_count" fill="#F59E0B" radius={[4, 4, 0, 0]} name={t('dashboard.chartSeries.users')} />
+                    <Bar dataKey="users_count" fill="#F59E0B" radius={[4, 4, 0, 0]} name={t('chartSeries.users')} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
                 <div className="flex h-full items-center justify-center text-gray-500">
-                  {t('dashboard.demographics.userDistribution.empty.age')}
+                  {t('demographics.userDistribution.empty.age')}
                 </div>
               )}
             </ChartCard>
 
-            <ChartCard title={t('dashboard.demographics.userDistribution.charts.gender')}>
+            <ChartCard title={t('demographics.userDistribution.charts.gender')}>
               {errors.usersByGender ? (
-                <div className="flex h-full items-center justify-center text-red-500">{t('dashboard.demographics.userDistribution.errors.gender')}</div>
+                <div className="flex h-full items-center justify-center text-red-500">{t('demographics.userDistribution.errors.gender')}</div>
               ) : usersByGenderData.length > 0 ? (
                 <ResponsiveContainer>
                   <BarChart data={usersByGenderData}>
@@ -785,19 +785,19 @@ export default function DashboardScreen() {
                       contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
                       formatter={(value, name) => [formatMetricValue(value, language), name]}
                     />
-                    <Bar dataKey="users_count" fill="#06B6D4" radius={[4, 4, 0, 0]} name={t('dashboard.chartSeries.users')} />
+                    <Bar dataKey="users_count" fill="#06B6D4" radius={[4, 4, 0, 0]} name={t('chartSeries.users')} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
                 <div className="flex h-full items-center justify-center text-gray-500">
-                  {t('dashboard.demographics.userDistribution.empty.gender')}
+                  {t('demographics.userDistribution.empty.gender')}
                 </div>
               )}
             </ChartCard>
 
-            <ChartCard title={t('dashboard.demographics.userDistribution.charts.weight')}>
+            <ChartCard title={t('demographics.userDistribution.charts.weight')}>
               {errors.usersByWeight ? (
-                <div className="flex h-full items-center justify-center text-red-500">{t('dashboard.demographics.userDistribution.errors.weight')}</div>
+                <div className="flex h-full items-center justify-center text-red-500">{t('demographics.userDistribution.errors.weight')}</div>
               ) : usersByWeightData.length > 0 ? (
                 <ResponsiveContainer>
                   <BarChart data={usersByWeightData}>
@@ -809,19 +809,19 @@ export default function DashboardScreen() {
                       contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
                       formatter={(value, name) => [formatMetricValue(value, language), name]}
                     />
-                    <Bar dataKey="users_count" fill="#22C55E" radius={[4, 4, 0, 0]} name={t('dashboard.chartSeries.users')} />
+                    <Bar dataKey="users_count" fill="#22C55E" radius={[4, 4, 0, 0]} name={t('chartSeries.users')} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
                 <div className="flex h-full items-center justify-center text-gray-500">
-                  {t('dashboard.demographics.userDistribution.empty.weight')}
+                  {t('demographics.userDistribution.empty.weight')}
                 </div>
               )}
             </ChartCard>
 
-            <ChartCard title={t('dashboard.demographics.userDistribution.charts.height')}>
+            <ChartCard title={t('demographics.userDistribution.charts.height')}>
               {errors.usersByHeight ? (
-                <div className="flex h-full items-center justify-center text-red-500">{t('dashboard.demographics.userDistribution.errors.height')}</div>
+                <div className="flex h-full items-center justify-center text-red-500">{t('demographics.userDistribution.errors.height')}</div>
               ) : usersByHeightData.length > 0 ? (
                 <ResponsiveContainer>
                   <BarChart data={usersByHeightData}>
@@ -833,12 +833,12 @@ export default function DashboardScreen() {
                       contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
                       formatter={(value, name) => [formatMetricValue(value, language), name]}
                     />
-                    <Bar dataKey="users_count" fill="#A855F7" radius={[4, 4, 0, 0]} name={t('dashboard.chartSeries.users')} />
+                    <Bar dataKey="users_count" fill="#A855F7" radius={[4, 4, 0, 0]} name={t('chartSeries.users')} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
                 <div className="flex h-full items-center justify-center text-gray-500">
-                  {t('dashboard.demographics.userDistribution.empty.height')}
+                  {t('demographics.userDistribution.empty.height')}
                 </div>
               )}
             </ChartCard>
@@ -847,12 +847,12 @@ export default function DashboardScreen() {
 
         <div className="mb-8">
           <SectionHeader
-            title={t('dashboard.demographics.segmentComparison.title')}
-            description={t('dashboard.demographics.segmentComparison.description')}
+            title={t('demographics.segmentComparison.title')}
+            description={t('demographics.segmentComparison.description')}
           />
           {errors.segmentComparison ? (
             <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-sm text-red-500">
-              {t('dashboard.demographics.segmentComparison.error')}
+              {t('demographics.segmentComparison.error')}
             </div>
           ) : segmentComparisons.length > 0 ? (
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
@@ -865,20 +865,20 @@ export default function DashboardScreen() {
             </div>
           ) : (
             <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-sm text-gray-400">
-              {t('dashboard.demographics.segmentComparison.empty')}
+              {t('demographics.segmentComparison.empty')}
             </div>
           )}
         </div>
 
         <div className="mb-8">
           <SectionHeader
-            title={t('dashboard.demographics.usageBySegment.title')}
-            description={t('dashboard.demographics.usageBySegment.description')}
+            title={t('demographics.usageBySegment.title')}
+            description={t('demographics.usageBySegment.description')}
           />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <ChartCard title={t('dashboard.demographics.usageBySegment.charts.age')}>
+            <ChartCard title={t('demographics.usageBySegment.charts.age')}>
               {errors.ageGroup ? (
-                <div className="flex h-full items-center justify-center text-red-500">{t('dashboard.demographics.usageBySegment.errors.age')}</div>
+                <div className="flex h-full items-center justify-center text-red-500">{t('demographics.usageBySegment.errors.age')}</div>
               ) : ageGroupData.length > 0 ? (
                 <ResponsiveContainer>
                   <BarChart data={ageGroupData}>
@@ -886,19 +886,19 @@ export default function DashboardScreen() {
                     <XAxis dataKey="age_group_label" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
                     <YAxis stroke="#9CA3AF" />
                     <Tooltip cursor={{ fill: '#374151' }} content={<UsageMetricsTooltip labelKey="age_group" />} />
-                    <Bar dataKey="requests_count" fill="#EC4899" radius={[4, 4, 0, 0]} name={t('dashboard.chartSeries.requests')} />
+                    <Bar dataKey="requests_count" fill="#EC4899" radius={[4, 4, 0, 0]} name={t('chartSeries.requests')} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
                 <div className="flex h-full items-center justify-center text-gray-500">
-                  {t('dashboard.demographics.usageBySegment.empty.age')}
+                  {t('demographics.usageBySegment.empty.age')}
                 </div>
               )}
             </ChartCard>
 
-            <ChartCard title={t('dashboard.demographics.usageBySegment.charts.gender')}>
+            <ChartCard title={t('demographics.usageBySegment.charts.gender')}>
               {errors.genderInsights ? (
-                <div className="flex h-full items-center justify-center text-red-500">{t('dashboard.demographics.usageBySegment.errors.gender')}</div>
+                <div className="flex h-full items-center justify-center text-red-500">{t('demographics.usageBySegment.errors.gender')}</div>
               ) : genderInsightsData.length > 0 ? (
                 <ResponsiveContainer>
                   <BarChart data={genderInsightsData}>
@@ -906,19 +906,19 @@ export default function DashboardScreen() {
                     <XAxis dataKey="gender_label" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
                     <YAxis stroke="#9CA3AF" />
                     <Tooltip cursor={{ fill: '#374151' }} content={<UsageMetricsTooltip labelKey="gender" />} />
-                    <Bar dataKey="avg_requests" fill="#3B82F6" radius={[4, 4, 0, 0]} name={t('dashboard.chartSeries.avgRequests')} />
+                    <Bar dataKey="avg_requests" fill="#3B82F6" radius={[4, 4, 0, 0]} name={t('chartSeries.avgRequests')} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
                 <div className="flex h-full items-center justify-center text-gray-500">
-                  {t('dashboard.demographics.usageBySegment.empty.gender')}
+                  {t('demographics.usageBySegment.empty.gender')}
                 </div>
               )}
             </ChartCard>
 
-            <ChartCard title={t('dashboard.demographics.usageBySegment.charts.weight')}>
+            <ChartCard title={t('demographics.usageBySegment.charts.weight')}>
               {errors.weightInsights ? (
-                <div className="flex h-full items-center justify-center text-red-500">{t('dashboard.demographics.usageBySegment.errors.weight')}</div>
+                <div className="flex h-full items-center justify-center text-red-500">{t('demographics.usageBySegment.errors.weight')}</div>
               ) : weightInsightsData.length > 0 ? (
                 <ResponsiveContainer>
                   <BarChart data={weightInsightsData}>
@@ -926,19 +926,19 @@ export default function DashboardScreen() {
                     <XAxis dataKey="bucket_label" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
                     <YAxis stroke="#9CA3AF" />
                     <Tooltip cursor={{ fill: '#374151' }} content={<UsageMetricsTooltip labelKey="bucket" />} />
-                    <Bar dataKey="avg_requests" fill="#10B981" radius={[4, 4, 0, 0]} name={t('dashboard.chartSeries.avgRequests')} />
+                    <Bar dataKey="avg_requests" fill="#10B981" radius={[4, 4, 0, 0]} name={t('chartSeries.avgRequests')} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
                 <div className="flex h-full items-center justify-center text-gray-500">
-                  {t('dashboard.demographics.usageBySegment.empty.weight')}
+                  {t('demographics.usageBySegment.empty.weight')}
                 </div>
               )}
             </ChartCard>
 
-            <ChartCard title={t('dashboard.demographics.usageBySegment.charts.height')}>
+            <ChartCard title={t('demographics.usageBySegment.charts.height')}>
               {errors.heightInsights ? (
-                <div className="flex h-full items-center justify-center text-red-500">{t('dashboard.demographics.usageBySegment.errors.height')}</div>
+                <div className="flex h-full items-center justify-center text-red-500">{t('demographics.usageBySegment.errors.height')}</div>
               ) : heightInsightsData.length > 0 ? (
                 <ResponsiveContainer>
                   <BarChart data={heightInsightsData}>
@@ -946,12 +946,12 @@ export default function DashboardScreen() {
                     <XAxis dataKey="bucket_label" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
                     <YAxis stroke="#9CA3AF" />
                     <Tooltip cursor={{ fill: '#374151' }} content={<UsageMetricsTooltip labelKey="bucket" />} />
-                    <Bar dataKey="avg_requests" fill="#8B5CF6" radius={[4, 4, 0, 0]} name={t('dashboard.chartSeries.avgRequests')} />
+                    <Bar dataKey="avg_requests" fill="#8B5CF6" radius={[4, 4, 0, 0]} name={t('chartSeries.avgRequests')} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
                 <div className="flex h-full items-center justify-center text-gray-500">
-                  {t('dashboard.demographics.usageBySegment.empty.height')}
+                  {t('demographics.usageBySegment.empty.height')}
                 </div>
               )}
             </ChartCard>
@@ -961,9 +961,9 @@ export default function DashboardScreen() {
       )}
       {activeTab === 'system' && (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <ChartCard title={t('dashboard.system.charts.aiHealth')}>
+        <ChartCard title={t('system.charts.aiHealth')}>
           {errors.aiHealth ? (
-            <div className="flex h-full items-center justify-center text-red-500">{t('dashboard.system.errors.aiHealth')}</div>
+            <div className="flex h-full items-center justify-center text-red-500">{t('system.errors.aiHealth')}</div>
           ) : (
             <ResponsiveContainer>
               <LineChart data={processedAiHealth}>
@@ -975,16 +975,16 @@ export default function DashboardScreen() {
                   contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
                   formatter={(value, name) => [formatMetricValue(value, language), name]}
                 />
-                <Line type="monotone" dataKey="success_count" stroke="#10B981" strokeWidth={2} name={t('dashboard.chartSeries.success')} />
-                <Line type="monotone" dataKey="rate_limits_hit" stroke="#EF4444" strokeWidth={2} name={t('dashboard.chartSeries.rateLimited')} />
-                <Line type="monotone" dataKey="provider_failures" stroke="#F59E0B" strokeWidth={2} name={t('dashboard.chartSeries.providerErrors')} />
+                <Line type="monotone" dataKey="success_count" stroke="#10B981" strokeWidth={2} name={t('chartSeries.success')} />
+                <Line type="monotone" dataKey="rate_limits_hit" stroke="#EF4444" strokeWidth={2} name={t('chartSeries.rateLimited')} />
+                <Line type="monotone" dataKey="provider_failures" stroke="#F59E0B" strokeWidth={2} name={t('chartSeries.providerErrors')} />
               </LineChart>
             </ResponsiveContainer>
           )}
         </ChartCard>
-        <ChartCard title={t('dashboard.system.charts.requestsOverTime')}>
+        <ChartCard title={t('system.charts.requestsOverTime')}>
           {errors.timeRange ? (
-            <div className="flex h-full items-center justify-center text-red-500">{t('dashboard.system.errors.activityTimeline')}</div>
+            <div className="flex h-full items-center justify-center text-red-500">{t('system.errors.activityTimeline')}</div>
           ) : timeRangeData.length > 0 ? (
             <ResponsiveContainer>
               <LineChart data={timeRangeData}>
@@ -996,12 +996,12 @@ export default function DashboardScreen() {
                   contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
                   formatter={(value, name) => [formatMetricValue(value, language), name]}
                 />
-                <Line type="monotone" dataKey="metric_value" stroke="#3B82F6" strokeWidth={2} name={t('dashboard.chartSeries.activity')} />
+                <Line type="monotone" dataKey="metric_value" stroke="#3B82F6" strokeWidth={2} name={t('chartSeries.activity')} />
               </LineChart>
             </ResponsiveContainer>
           ) : (
             <div className="flex h-full items-center justify-center text-gray-500">
-              {t('dashboard.system.empty.activityTimeline')}
+              {t('system.empty.activityTimeline')}
             </div>
           )}
         </ChartCard>
@@ -1013,10 +1013,10 @@ export default function DashboardScreen() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setModalOpen(false)}>
           <div className="bg-gray-800 border border-gray-700 rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
             <div className="p-6 border-b border-gray-700 flex justify-between items-center">
-              <h2 className="text-xl font-bold text-white">{t('dashboard.modal.onboardedUsers.title')}</h2>
+              <h2 className="text-xl font-bold text-white">{t('modal.onboardedUsers.title')}</h2>
               <button 
                 onClick={() => setModalOpen(false)}
-                aria-label={t('common.actions.close')}
+                aria-label={t('common:actions.close')}
                 className="text-gray-400 hover:text-white transition-colors text-2xl leading-none"
               >
                 &times;
@@ -1027,8 +1027,8 @@ export default function DashboardScreen() {
                 <div className="mb-4">
                   <input
                     type="text"
-                    aria-label={t('dashboard.modal.onboardedUsers.searchPlaceholder')}
-                    placeholder={t('dashboard.modal.onboardedUsers.searchPlaceholder')}
+                    aria-label={t('modal.onboardedUsers.searchPlaceholder')}
+                    placeholder={t('modal.onboardedUsers.searchPlaceholder')}
                     value={modalSearch}
                     onChange={e => setModalSearch(e.target.value)}
                     className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
@@ -1036,16 +1036,16 @@ export default function DashboardScreen() {
                 </div>
               )}
               {modalLoading ? (
-                <div className="text-center text-gray-400 py-8">{t('dashboard.modal.onboardedUsers.loading')}</div>
+                <div className="text-center text-gray-400 py-8">{t('modal.onboardedUsers.loading')}</div>
               ) : modalError ? (
-                <div className="text-center text-red-500 py-8">{t('dashboard.modal.onboardedUsers.error')}</div>
+                <div className="text-center text-red-500 py-8">{t('modal.onboardedUsers.error')}</div>
               ) : modalUsers.length === 0 ? (
-                <div className="text-center text-gray-400 py-8">{t('dashboard.modal.onboardedUsers.empty')}</div>
+                <div className="text-center text-gray-400 py-8">{t('modal.onboardedUsers.empty')}</div>
               ) : (
                 (() => {
                   const filteredUsers = modalUsers.filter(u => (u.email || '').toLowerCase().includes(modalSearch.toLowerCase()));
                   if (filteredUsers.length === 0) {
-                    return <div className="text-center text-gray-400 py-8">{t('dashboard.modal.onboardedUsers.noMatches')}</div>;
+                    return <div className="text-center text-gray-400 py-8">{t('modal.onboardedUsers.noMatches')}</div>;
                   }
                   return (
                     <div className="space-y-3">

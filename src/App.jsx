@@ -6,7 +6,7 @@ import DashboardScreen from './screens/DashboardScreen';
 import { api } from './api';
 
 function AuthGuard({ children }) {
-  const { t } = useTranslation(['auth']);
+  const { t } = useTranslation('auth');
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
@@ -24,7 +24,7 @@ function AuthGuard({ children }) {
         if (user.is_admin) {
           setIsAdmin(true);
         } else {
-          alert(t('auth.accessDeniedAlert'));
+          alert(t('accessDeniedAlert'));
           localStorage.removeItem('admin_token');
           navigate('/login');
         }
@@ -38,7 +38,7 @@ function AuthGuard({ children }) {
   }, [navigate, t]);
 
   if (loading) {
-    return <div className="flex h-screen items-center justify-center text-white">{t('auth.loading')}</div>;
+    return <div className="flex h-screen items-center justify-center text-white">{t('loading')}</div>;
   }
 
   return isAdmin ? children : null;
