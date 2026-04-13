@@ -973,4 +973,28 @@ resources.ru.dashboard = {
   },
 };
 
+resources.en.common.dataMode = {
+  selector: 'Data mode selector',
+  production: 'Production',
+  test: 'Test',
+  switchToProduction: 'Switch to production analytics data',
+  switchToTest: 'Switch to test analytics data',
+  badges: {
+    production: 'Production Data',
+    test: 'TEST DATA',
+  },
+};
+
+resources.ru.common.dataMode = {
+  selector: '\u041f\u0435\u0440\u0435\u043a\u043b\u044e\u0447\u0430\u0442\u0435\u043b\u044c \u0440\u0435\u0436\u0438\u043c\u0430 \u0434\u0430\u043d\u043d\u044b\u0445',
+  production: '\u041f\u0440\u043e\u0434\u0430\u043a\u0448\u043d',
+  test: '\u0422\u0435\u0441\u0442',
+  switchToProduction: '\u041f\u0435\u0440\u0435\u043a\u043b\u044e\u0447\u0438\u0442\u044c \u043d\u0430 \u043f\u0440\u043e\u0434\u0430\u043a\u0448\u043d-\u0434\u0430\u043d\u043d\u044b\u0435',
+  switchToTest: '\u041f\u0435\u0440\u0435\u043a\u043b\u044e\u0447\u0438\u0442\u044c \u043d\u0430 \u0442\u0435\u0441\u0442\u043e\u0432\u044b\u0435 \u0430\u043d\u0430\u043b\u0438\u0442\u0438\u0447\u0435\u0441\u043a\u0438\u0435 \u0434\u0430\u043d\u043d\u044b\u0435',
+  badges: {
+    production: '\u041f\u0440\u043e\u0434\u0430\u043a\u0448\u043d-\u0434\u0430\u043d\u043d\u044b\u0435',
+    test: 'TEST DATA',
+  },
+};
+
 export default resources;

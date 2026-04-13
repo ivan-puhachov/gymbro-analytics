@@ -3,12 +3,30 @@ if (!import.meta.env.VITE_API_URL) {
 }
 
 const BASE_URL = import.meta.env.VITE_API_URL;
+export const DATA_MODE_STORAGE_KEY = 'gymbro_analytics_data_mode';
+export const DEFAULT_DATA_MODE = 'production';
+
+export function normalizeDataMode(mode) {
+  return String(mode || DEFAULT_DATA_MODE).trim().toLowerCase() === 'test' ? 'test' : DEFAULT_DATA_MODE;
+}
 
 function createApiError(message, status, details = null) {
   const error = new Error(message);
   error.status = status;
   error.details = details;
   return error;
+}
+
+function buildHeaders(token, dataMode = DEFAULT_DATA_MODE) {
+  const headers = {
+    'X-Data-Mode': normalizeDataMode(dataMode),
+  };
+
+  if (token) {
+    headers.Authorization = 'Bearer ' + token;
+  }
+
+  return headers;
 }
 
 export const api = {
@@ -27,21 +45,21 @@ export const api = {
 
   async getMe(token) {
     const res = await fetch(BASE_URL + '/auth/me', {
-      headers: { 'Authorization': 'Bearer ' + token },
+      headers: { Authorization: 'Bearer ' + token },
     });
     if (!res.ok) throw createApiError('Failed to fetch user', res.status);
     return res.json();
   },
 
-  async getReport(endpoint, token) {
+  async getReport(endpoint, token, dataMode = DEFAULT_DATA_MODE) {
     const res = await fetch(BASE_URL + '/reports/' + endpoint, {
-      headers: { 'Authorization': 'Bearer ' + token },
+      headers: buildHeaders(token, dataMode),
     });
     if (!res.ok) throw createApiError(`Failed to fetch ${endpoint}`, res.status, endpoint);
     return res.json();
   },
 
-  async getAnalytics(endpoint, token, queryParams = {}) {
+  async getAnalytics(endpoint, token, queryParams = {}, dataMode = DEFAULT_DATA_MODE) {
     const url = new URL(BASE_URL + '/analytics/' + endpoint);
     Object.keys(queryParams).forEach(key => {
       if (queryParams[key] !== undefined && queryParams[key] !== null) {
@@ -50,7 +68,7 @@ export const api = {
     });
     
     const res = await fetch(url.toString(), {
-      headers: { 'Authorization': 'Bearer ' + token },
+      headers: buildHeaders(token, dataMode),
     });
     if (!res.ok) throw createApiError(`Failed to fetch analytics: ${endpoint}`, res.status, endpoint);
     return res.json();

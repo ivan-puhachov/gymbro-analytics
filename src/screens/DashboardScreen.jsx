@@ -26,7 +26,8 @@ import {
   ShieldAlert,
   Users,
 } from 'lucide-react';
-import { api } from '../api';
+import { api, DATA_MODE_STORAGE_KEY, DEFAULT_DATA_MODE, normalizeDataMode } from '../api';
+import DataModeToggle from '../components/DataModeToggle';
 import LanguageToggle from '../components/LanguageToggle';
 import { formatDate, formatDateTime, formatMetricValue, formatTimelineLabel } from '../utils/formatters';
 import {
@@ -304,6 +305,13 @@ export default function DashboardScreen() {
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
   const [activeTab, setActiveTab] = useState('overview');
+  const [dataMode, setDataMode] = useState(() => {
+    try {
+      return normalizeDataMode(localStorage.getItem(DATA_MODE_STORAGE_KEY));
+    } catch {
+      return DEFAULT_DATA_MODE;
+    }
+  });
   const [startDate, setStartDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() - 30);
@@ -324,6 +332,25 @@ export default function DashboardScreen() {
     document.title = t('pageTitle');
   }, [language, t]);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(DATA_MODE_STORAGE_KEY, normalizeDataMode(dataMode));
+    } catch {
+      /* Ignore storage write failures. */
+    }
+  }, [dataMode]);
+
+  useEffect(() => {
+    setData(null);
+    setErrors({});
+    setLoading(true);
+    setModalOpen(false);
+    setModalUsers([]);
+    setModalLoading(false);
+    setModalError(false);
+    setModalSearch('');
+  }, [dataMode]);
+
   const handleOnboardedClick = async () => {
     setModalOpen(true);
     setModalError(false);
@@ -338,7 +365,7 @@ export default function DashboardScreen() {
     setModalLoading(true);
     try {
       const token = localStorage.getItem('admin_token');
-      const users = await api.getAnalytics('users/onboarded', token);
+      const users = await api.getAnalytics('users/onboarded', token, {}, dataMode);
       setModalUsers(users);
     } catch (err) {
       console.error(err);
@@ -349,31 +376,35 @@ export default function DashboardScreen() {
   };
 
   useEffect(() => {
+    let isCancelled = false;
+
     async function loadData() {
       const token = localStorage.getItem('admin_token');
+      const currentDataMode = normalizeDataMode(dataMode);
+      setLoading(true);
       try {
         const queryParams = { start: startDate, end: endDate, granularity };
         const demographicsQueryParams = { start: startDate, end: endDate };
 
         const promiseMap = {
-          dau: api.getReport('daily-active-users', token),
-          onboarding: api.getReport('onboarding', token),
-          aiHealth: api.getReport('ai-health', token),
-          hourly: api.getReport('hourly-activity', token),
-          engagement: api.getReport('engagement?limit=1000', token),
-          userReports: api.getReport('users?limit=1000', token),
-          usageSummary: api.getAnalytics('usage-summary', token, demographicsQueryParams),
-          onboardedUsers: api.getAnalytics('users/onboarded', token),
-          segmentComparison: api.getAnalytics('segment-comparison', token, demographicsQueryParams),
-          ageGroup: api.getAnalytics('by-age-group', token, demographicsQueryParams),
-          timeRange: api.getAnalytics('by-time-range', token, queryParams),
-          genderInsights: api.getAnalytics('by-gender', token, demographicsQueryParams),
-          weightInsights: api.getAnalytics('by-weight-bucket', token, demographicsQueryParams),
-          heightInsights: api.getAnalytics('by-height-bucket', token, demographicsQueryParams),
-          usersByAgeGroup: api.getAnalytics('users-by-age-group', token),
-          usersByGender: api.getAnalytics('users-by-gender', token),
-          usersByWeight: api.getAnalytics('users-by-weight-bucket', token),
-          usersByHeight: api.getAnalytics('users-by-height-bucket', token),
+          dau: api.getReport('daily-active-users', token, currentDataMode),
+          onboarding: api.getReport('onboarding', token, currentDataMode),
+          aiHealth: api.getReport('ai-health', token, currentDataMode),
+          hourly: api.getReport('hourly-activity', token, currentDataMode),
+          engagement: api.getReport('engagement?limit=1000', token, currentDataMode),
+          userReports: api.getReport('users?limit=1000', token, currentDataMode),
+          usageSummary: api.getAnalytics('usage-summary', token, demographicsQueryParams, currentDataMode),
+          onboardedUsers: api.getAnalytics('users/onboarded', token, {}, currentDataMode),
+          segmentComparison: api.getAnalytics('segment-comparison', token, demographicsQueryParams, currentDataMode),
+          ageGroup: api.getAnalytics('by-age-group', token, demographicsQueryParams, currentDataMode),
+          timeRange: api.getAnalytics('by-time-range', token, queryParams, currentDataMode),
+          genderInsights: api.getAnalytics('by-gender', token, demographicsQueryParams, currentDataMode),
+          weightInsights: api.getAnalytics('by-weight-bucket', token, demographicsQueryParams, currentDataMode),
+          heightInsights: api.getAnalytics('by-height-bucket', token, demographicsQueryParams, currentDataMode),
+          usersByAgeGroup: api.getAnalytics('users-by-age-group', token, {}, currentDataMode),
+          usersByGender: api.getAnalytics('users-by-gender', token, {}, currentDataMode),
+          usersByWeight: api.getAnalytics('users-by-weight-bucket', token, {}, currentDataMode),
+          usersByHeight: api.getAnalytics('users-by-height-bucket', token, {}, currentDataMode),
         };
 
         const keys = Object.keys(promiseMap);
@@ -389,6 +420,8 @@ export default function DashboardScreen() {
             result.status === 'rejected' &&
             (result.reason?.status === 401 || result.reason?.status === 403),
         );
+
+        if (isCancelled) return;
 
         if (hasAuthError) {
           localStorage.removeItem('admin_token');
@@ -419,6 +452,8 @@ export default function DashboardScreen() {
 
         const safeData = (result, defaultValue) => (result?.status === 'fulfilled' ? result.value : defaultValue);
 
+        if (isCancelled) return;
+
         setData({
           dau: safeData(results.dau, []),
           onboarding: safeData(results.onboarding, {}),
@@ -448,12 +483,17 @@ export default function DashboardScreen() {
       } catch (err) {
         console.error('Unexpected error in loadData:', err);
       } finally {
-        setLoading(false);
+        if (!isCancelled) {
+          setLoading(false);
+        }
       }
     }
 
     loadData();
-  }, [navigate, startDate, endDate, granularity]);
+    return () => {
+      isCancelled = true;
+    };
+  }, [dataMode, navigate, startDate, endDate, granularity]);
 
   const handleLogout = () => {
     localStorage.removeItem('admin_token');
@@ -826,6 +866,8 @@ export default function DashboardScreen() {
 
   const activeNavItem = NAV_ITEMS.find((item) => item.id === activeTab);
   const activeTabTitle = activeNavItem ? t(activeNavItem.labelKey) : t('headerFallback');
+  const normalizedDataMode = normalizeDataMode(dataMode);
+  const isTestDataMode = normalizedDataMode === 'test';
 
   return (
     <div className="flex h-screen bg-gray-900 overflow-hidden">
@@ -870,9 +912,20 @@ export default function DashboardScreen() {
 
       <main className="flex-1 bg-gray-900 p-8 h-screen overflow-y-auto">
         <header className="mb-8 pb-4 border-b border-gray-800">
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">
-            {activeTabTitle}
-          </h1>
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">
+              {activeTabTitle}
+            </h1>
+            <span
+              className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${
+                isTestDataMode
+                  ? 'border border-amber-400/40 bg-amber-500/15 text-amber-200'
+                  : 'border border-emerald-400/30 bg-emerald-500/10 text-emerald-200'
+              }`}
+            >
+              {isTestDataMode ? t('common:dataMode.badges.test') : t('common:dataMode.badges.production')}
+            </span>
+          </div>
         </header>
 
         <div className="flex flex-wrap items-start sm:items-center gap-4 mb-6 p-4 bg-gray-800 rounded-xl border border-gray-700 shadow-sm">
@@ -910,7 +963,14 @@ export default function DashboardScreen() {
               <option value="month">{t('filters.options.month')}</option>
             </select>
           </div>
-          <LanguageToggle className="w-full justify-center sm:ml-auto sm:w-auto shrink-0" />
+          <div className="flex w-full flex-wrap items-center justify-center gap-3 sm:ml-auto sm:w-auto sm:justify-end">
+            <DataModeToggle
+              value={dataMode}
+              onChange={setDataMode}
+              className="w-full justify-center sm:w-auto"
+            />
+            <LanguageToggle className="w-full justify-center sm:w-auto shrink-0" />
+          </div>
         </div>
         {activeTab === 'overview' && (
           <>
