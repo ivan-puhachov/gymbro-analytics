@@ -37,18 +37,23 @@ import {
   getWeightBucketLabel,
 } from '../utils/analyticsDisplay';
 
-const ContentCard = ({ title, description, children, className = '' }) => (
+const ContentCard = ({ title, description, children, className = '', contentClassName = '' }) => (
   <div className={`bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-sm ${className}`}>
     {title && <h3 className="text-lg font-semibold text-gray-300 leading-snug break-words">{title}</h3>}
     {description && <p className="text-sm text-gray-400 mt-1 leading-relaxed break-words">{description}</p>}
-    <div className={title || description ? 'mt-4' : ''}>
+    <div className={`w-full ${title || description ? 'mt-4' : ''} ${contentClassName}`.trim()}>
       {children}
     </div>
   </div>
 );
 
 const ChartCard = ({ title, description, children }) => (
-  <ContentCard title={title} description={description} className="flex flex-col items-center">
+  <ContentCard
+    title={title}
+    description={description}
+    className="flex flex-col items-stretch"
+    contentClassName="min-w-0"
+  >
     <div className="w-full h-64">
       {children}
     </div>
