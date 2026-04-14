@@ -312,6 +312,7 @@ export default function DashboardScreen() {
       return DEFAULT_DATA_MODE;
     }
   });
+  const [includeAdmins, setIncludeAdmins] = useState(() => localStorage.getItem('gymbro_analytics_include_admins') === 'true');
   const [startDate, setStartDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() - 30);
@@ -341,6 +342,14 @@ export default function DashboardScreen() {
   }, [dataMode]);
 
   useEffect(() => {
+    try {
+      localStorage.setItem('gymbro_analytics_include_admins', String(includeAdmins));
+    } catch {
+      /* Ignore storage write failures. */
+    }
+  }, [includeAdmins]);
+
+  useEffect(() => {
     setData(null);
     setErrors({});
     setLoading(true);
@@ -349,7 +358,7 @@ export default function DashboardScreen() {
     setModalLoading(false);
     setModalError(false);
     setModalSearch('');
-  }, [dataMode]);
+  }, [dataMode, includeAdmins]);
 
   const handleOnboardedClick = async () => {
     setModalOpen(true);
@@ -365,7 +374,7 @@ export default function DashboardScreen() {
     setModalLoading(true);
     try {
       const token = localStorage.getItem('admin_token');
-      const users = await api.getAnalytics('users/onboarded', token, {}, dataMode);
+      const users = await api.getAnalytics('users/onboarded', token, {}, dataMode, includeAdmins);
       setModalUsers(users);
     } catch (err) {
       console.error(err);
@@ -387,24 +396,24 @@ export default function DashboardScreen() {
         const demographicsQueryParams = { start: startDate, end: endDate };
 
         const promiseMap = {
-          dau: api.getReport('daily-active-users', token, currentDataMode),
-          onboarding: api.getReport('onboarding', token, currentDataMode),
-          aiHealth: api.getReport('ai-health', token, currentDataMode),
-          hourly: api.getReport('hourly-activity', token, currentDataMode),
-          engagement: api.getReport('engagement?limit=1000', token, currentDataMode),
-          userReports: api.getReport('users?limit=1000', token, currentDataMode),
-          usageSummary: api.getAnalytics('usage-summary', token, demographicsQueryParams, currentDataMode),
-          onboardedUsers: api.getAnalytics('users/onboarded', token, {}, currentDataMode),
-          segmentComparison: api.getAnalytics('segment-comparison', token, demographicsQueryParams, currentDataMode),
-          ageGroup: api.getAnalytics('by-age-group', token, demographicsQueryParams, currentDataMode),
-          timeRange: api.getAnalytics('by-time-range', token, queryParams, currentDataMode),
-          genderInsights: api.getAnalytics('by-gender', token, demographicsQueryParams, currentDataMode),
-          weightInsights: api.getAnalytics('by-weight-bucket', token, demographicsQueryParams, currentDataMode),
-          heightInsights: api.getAnalytics('by-height-bucket', token, demographicsQueryParams, currentDataMode),
-          usersByAgeGroup: api.getAnalytics('users-by-age-group', token, {}, currentDataMode),
-          usersByGender: api.getAnalytics('users-by-gender', token, {}, currentDataMode),
-          usersByWeight: api.getAnalytics('users-by-weight-bucket', token, {}, currentDataMode),
-          usersByHeight: api.getAnalytics('users-by-height-bucket', token, {}, currentDataMode),
+          dau: api.getReport('daily-active-users', token, currentDataMode, includeAdmins),
+          onboarding: api.getReport('onboarding', token, currentDataMode, includeAdmins),
+          aiHealth: api.getReport('ai-health', token, currentDataMode, includeAdmins),
+          hourly: api.getReport('hourly-activity', token, currentDataMode, includeAdmins),
+          engagement: api.getReport('engagement?limit=1000', token, currentDataMode, includeAdmins),
+          userReports: api.getReport('users?limit=1000', token, currentDataMode, includeAdmins),
+          usageSummary: api.getAnalytics('usage-summary', token, demographicsQueryParams, currentDataMode, includeAdmins),
+          onboardedUsers: api.getAnalytics('users/onboarded', token, {}, currentDataMode, includeAdmins),
+          segmentComparison: api.getAnalytics('segment-comparison', token, demographicsQueryParams, currentDataMode, includeAdmins),
+          ageGroup: api.getAnalytics('by-age-group', token, demographicsQueryParams, currentDataMode, includeAdmins),
+          timeRange: api.getAnalytics('by-time-range', token, queryParams, currentDataMode, includeAdmins),
+          genderInsights: api.getAnalytics('by-gender', token, demographicsQueryParams, currentDataMode, includeAdmins),
+          weightInsights: api.getAnalytics('by-weight-bucket', token, demographicsQueryParams, currentDataMode, includeAdmins),
+          heightInsights: api.getAnalytics('by-height-bucket', token, demographicsQueryParams, currentDataMode, includeAdmins),
+          usersByAgeGroup: api.getAnalytics('users-by-age-group', token, {}, currentDataMode, includeAdmins),
+          usersByGender: api.getAnalytics('users-by-gender', token, {}, currentDataMode, includeAdmins),
+          usersByWeight: api.getAnalytics('users-by-weight-bucket', token, {}, currentDataMode, includeAdmins),
+          usersByHeight: api.getAnalytics('users-by-height-bucket', token, {}, currentDataMode, includeAdmins),
         };
 
         const keys = Object.keys(promiseMap);
@@ -493,7 +502,7 @@ export default function DashboardScreen() {
     return () => {
       isCancelled = true;
     };
-  }, [dataMode, navigate, startDate, endDate, granularity]);
+  }, [dataMode, navigate, startDate, endDate, granularity, includeAdmins]);
 
   const handleLogout = () => {
     localStorage.removeItem('admin_token');
@@ -964,6 +973,15 @@ export default function DashboardScreen() {
             </select>
           </div>
           <div className="flex w-full flex-wrap items-center justify-center gap-3 sm:ml-auto sm:w-auto sm:justify-end">
+            <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-300 font-medium mr-2">
+              <input
+                type="checkbox"
+                checked={includeAdmins}
+                onChange={(e) => setIncludeAdmins(e.target.checked)}
+                className="rounded border-gray-700 bg-gray-900 text-blue-500 focus:ring-blue-500 focus:ring-offset-gray-800"
+              />
+              Include Admins/AI
+            </label>
             <DataModeToggle
               value={dataMode}
               onChange={setDataMode}

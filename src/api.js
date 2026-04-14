@@ -51,15 +51,15 @@ export const api = {
     return res.json();
   },
 
-  async getReport(endpoint, token, dataMode = DEFAULT_DATA_MODE) {
+  async getReport(endpoint, token, dataMode = DEFAULT_DATA_MODE, includeAdmins = false) {
     const res = await fetch(BASE_URL + '/reports/' + endpoint, {
-      headers: buildHeaders(token, dataMode),
+      headers: buildHeaders(token, dataMode, includeAdmins),
     });
     if (!res.ok) throw createApiError(`Failed to fetch ${endpoint}`, res.status, endpoint);
     return res.json();
   },
 
-  async getAnalytics(endpoint, token, queryParams = {}, dataMode = DEFAULT_DATA_MODE) {
+  async getAnalytics(endpoint, token, queryParams = {}, dataMode = DEFAULT_DATA_MODE, includeAdmins = false) {
     const url = new URL(BASE_URL + '/analytics/' + endpoint);
     Object.keys(queryParams).forEach(key => {
       if (queryParams[key] !== undefined && queryParams[key] !== null) {
@@ -68,7 +68,7 @@ export const api = {
     });
     
     const res = await fetch(url.toString(), {
-      headers: buildHeaders(token, dataMode),
+      headers: buildHeaders(token, dataMode, includeAdmins),
     });
     if (!res.ok) throw createApiError(`Failed to fetch analytics: ${endpoint}`, res.status, endpoint);
     return res.json();
