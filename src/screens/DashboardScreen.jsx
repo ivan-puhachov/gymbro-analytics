@@ -980,7 +980,7 @@ export default function DashboardScreen() {
                 onChange={(e) => setIncludeAdmins(e.target.checked)}
                 className="rounded border-gray-700 bg-gray-900 text-blue-500 focus:ring-blue-500 focus:ring-offset-gray-800"
               />
-              Include Admins/AI
+              Include Admins
             </label>
             <DataModeToggle
               value={dataMode}
