@@ -533,7 +533,7 @@ export default function DashboardScreen() {
 
   const processedHourly = (data.hourly || []).map((item) => ({
     ...item,
-    hourLabel: formatDateTime(item.hour_bucket, language, { hour: 'numeric', minute: '2-digit' }) || unknownLabel,
+    hourLabel: formatDateTime(item.hour_bucket, language, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) || unknownLabel,
   })).reverse();
 
   const processedDau = (data.dau || []).map((item) => ({
