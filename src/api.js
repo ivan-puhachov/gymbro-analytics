@@ -17,10 +17,14 @@ function createApiError(message, status, details = null) {
   return error;
 }
 
-function buildHeaders(token, dataMode = DEFAULT_DATA_MODE) {
+function buildHeaders(token, dataMode = DEFAULT_DATA_MODE, includeAdmins = false) {
   const headers = {
     'X-Data-Mode': normalizeDataMode(dataMode),
   };
+
+  if (includeAdmins) {
+    headers['X-Include-Admins'] = 'true';
+  }
 
   if (token) {
     headers.Authorization = 'Bearer ' + token;
