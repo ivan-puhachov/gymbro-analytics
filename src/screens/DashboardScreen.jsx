@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -288,7 +288,7 @@ function getUserDisplayLabel(email, fallback) {
   const [localPart] = normalizedEmail.split('@');
   if (!localPart) return normalizedEmail;
 
-  return localPart.length > 12 ? `${localPart.slice(0, 12)}…` : localPart;
+  return localPart.length > 12 ? `${localPart.slice(0, 12)}ā€¦` : localPart;
 }
 
 function extractDateKey(value) {
@@ -751,7 +751,9 @@ export default function DashboardScreen() {
     { value: 'avgResponseTime', label: t('analytics.usageTrends.metrics.avgResponseTime') },
   ];
 
-  const analyticsTrendConfig = {
+  const granularityOptions = [{ value: 'hour', label: t('filters.options.hour') },{ value: 'day', label: t('filters.options.day') },{ value: 'week', label: t('filters.options.week') },{ value: 'month', label: t('filters.options.month') }];
+
+    const analyticsTrendConfig = {
     requests: {
       dataKey: 'requests_count',
       label: t('analytics.usageTrends.metrics.requests'),
@@ -1011,20 +1013,6 @@ export default function DashboardScreen() {
               className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm"
             />
           </div>
-          <div className="flex items-center gap-2">
-            <label className="text-gray-400 text-sm font-semibold whitespace-nowrap">{t('filters.granularity')}:</label>
-            <select
-              aria-label={t('filters.granularity')}
-              value={granularity}
-              onChange={(event) => setGranularity(event.target.value)}
-              className="bg-gray-900 border border-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:border-blue-500 text-sm"
-            >
-              <option value="hour">{t('filters.options.hour')}</option>
-              <option value="day">{t('filters.options.day')}</option>
-              <option value="week">{t('filters.options.week')}</option>
-              <option value="month">{t('filters.options.month')}</option>
-            </select>
-          </div>
           <div className="flex w-full flex-wrap items-center justify-center gap-3 sm:ml-auto sm:w-auto sm:justify-end">
             <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-300 font-medium mr-2">
               <input
@@ -1160,17 +1148,7 @@ export default function DashboardScreen() {
 
             <div className="mb-8">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                <SectionHeader
-                  title={t('analytics.usageTrends.title')}
-                  description={t('analytics.usageTrends.description')}
-                />
-                <MetricToggle
-                  label={t('analytics.usageTrends.metricToggleLabel')}
-                  options={analyticsTrendOptions}
-                  value={analyticsTrendMetric}
-                  onChange={setAnalyticsTrendMetric}
-                />
-              </div>
+                <SectionHeader title={t('analytics.usageTrends.title')} description={t('analytics.usageTrends.description')} /> <div className="flex flex-col sm:flex-row gap-4"> <MetricToggle label={t('filters.granularity')} options={granularityOptions} value={granularity} onChange={setGranularity} /> <MetricToggle label={t('analytics.usageTrends.metricToggleLabel')} options={analyticsTrendOptions} value={analyticsTrendMetric} onChange={setAnalyticsTrendMetric} /> </div> </div>
               <ChartCard title={t('analytics.usageTrends.chartTitle', { metric: selectedTrendMetric.label })}>
                 {errors.timeRange ? (
                   <div className="flex h-full items-center justify-center text-red-500">{t('analytics.usageTrends.error')}</div>
@@ -1802,3 +1780,6 @@ export default function DashboardScreen() {
     </div>
   );
 }
+
+
+
