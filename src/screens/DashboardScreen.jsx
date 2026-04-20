@@ -701,10 +701,6 @@ export default function DashboardScreen() {
   }));
 
   const engagementMap = new Map(engagementRows.map((item) => [item.user_id, item]));
-  const totalEngagements = engagementRows.reduce(
-    (sum, item) => sum + item.meals_events_count + item.training_events_count,
-    0,
-  );
 
   const userUsageById = new Map(userReportsData.map((user) => [user.user_id, user]));
   const onboardedUsersInRange = onboardedUsersData.filter((user) => isWithinDateRange(user.created_at, startDate, endDate));
@@ -1043,10 +1039,10 @@ export default function DashboardScreen() {
                 <div>
                   <p className="text-gray-400">{t('overview.totalEngagements')}</p>
                   <p className="text-2xl font-bold text-white">
-                    {errors.engagement ? (
+                    {errors.dau ? (
                       <span className="text-red-400 text-lg">{t('common:states.error')}</span>
                     ) : (
-                      formatMetricValue(totalEngagements, language, { maximumFractionDigits: 0 })
+                      formatMetricValue(data.dau?.length > 0 ? data.dau[0].total_events_count : 0, language, { maximumFractionDigits: 0 })
                     )}
                   </p>
                 </div>
