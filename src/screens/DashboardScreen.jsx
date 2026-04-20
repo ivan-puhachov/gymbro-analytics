@@ -1648,7 +1648,7 @@ export default function DashboardScreen() {
         )}
 
         {activeTab === 'system' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <div className="mb-8">
             <ChartCard title={t('system.charts.aiHealth')}>
               {errors.aiHealth ? (
                 <div className="flex h-full items-center justify-center text-red-500">{t('system.errors.aiHealth')}</div>
@@ -1668,29 +1668,6 @@ export default function DashboardScreen() {
                     <Line type="monotone" dataKey="provider_failures" stroke="#F59E0B" strokeWidth={2} name={t('chartSeries.providerErrors')} />
                   </LineChart>
                 </ResponsiveContainer>
-              )}
-            </ChartCard>
-            <ChartCard title={t('system.charts.requestsOverTime')}>
-              {errors.timeRange ? (
-                <div className="flex h-full items-center justify-center text-red-500">{t('system.errors.activityTimeline')}</div>
-              ) : requestsTrendData.length > 0 ? (
-                <ResponsiveContainer>
-                  <LineChart data={requestsTrendData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                    <XAxis dataKey="displayTimeLabel" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
-                    <YAxis stroke="#9CA3AF" />
-                    <Tooltip
-                      cursor={{ fill: '#374151' }}
-                      contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
-                      formatter={(value, name) => [formatMetricValue(value, language), name]}
-                    />
-                    <Line type="monotone" dataKey="metric_value" stroke="#3B82F6" strokeWidth={2} name={t('chartSeries.activity')} />
-                  </LineChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex h-full items-center justify-center text-gray-500">
-                  {t('system.empty.activityTimeline')}
-                </div>
               )}
             </ChartCard>
           </div>
