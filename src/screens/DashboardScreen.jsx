@@ -18,6 +18,8 @@ import {
 } from 'recharts';
 import {
   Activity,
+  ArrowDownRight,
+  ArrowUpRight,
   BarChart3,
   Cpu,
   Database,
@@ -25,6 +27,7 @@ import {
   LogOut,
   ShieldAlert,
   Users,
+  Zap,
 } from 'lucide-react';
 import { api, DATA_MODE_STORAGE_KEY, DEFAULT_DATA_MODE, normalizeDataMode } from '../api';
 import DataModeToggle from '../components/DataModeToggle';
@@ -202,53 +205,65 @@ const SegmentComparisonCard = ({ comparison }) => {
   });
 
   return (
-    <div className="bg-gray-800 p-5 rounded-xl border border-gray-700 shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
-        {t(`demographics.segmentComparison.dimensions.${dimensionKey}`, {
-          defaultValue: dimensionKey || t('common:fallback.unknown'),
-        })}
-      </p>
-      <div className="space-y-3 mt-4 text-sm">
-        <div className="flex items-start justify-between gap-4">
-          <span className="text-gray-400">{t('demographics.segmentComparison.labels.topSegment')}</span>
-          <span className="text-right text-white font-medium">
-            {topSegmentLabel} ({formatMetricValue(comparison.top_value, language)})
-          </span>
-        </div>
-        <div className="flex items-start justify-between gap-4">
-          <span className="text-gray-400">{t('demographics.segmentComparison.labels.bottomSegment')}</span>
-          <span className="text-right text-white font-medium">
-            {bottomSegmentLabel} ({formatMetricValue(comparison.bottom_value, language)})
-          </span>
-        </div>
-        <div className="flex items-start justify-between gap-4">
-          <span className="text-gray-400">{t('demographics.segmentComparison.labels.metric')}</span>
-          <span className="text-right text-white font-medium">
-            {t(`demographics.segmentComparison.metrics.${metricKey}`, {
-              defaultValue: metricKey || t('common:fallback.unknown'),
+    <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-lg flex flex-col justify-between">
+      <div>
+        <div className="flex items-center justify-between mb-6">
+          <p className="text-sm font-bold uppercase tracking-wider text-gray-400 flex items-center gap-2">
+            <Users size={16} className="text-blue-400" />
+            {t(`demographics.segmentComparison.dimensions.${dimensionKey}`, {
+              defaultValue: dimensionKey || t('common:fallback.unknown'),
             })}
-          </span>
+          </p>
+          <div className="bg-gray-900 border border-gray-700 px-3 py-1 rounded-full flex items-center gap-2 shadow-inner">
+            <Activity size={14} className="text-purple-400" />
+            <span className="text-xs font-medium text-gray-300">
+              {t(`demographics.segmentComparison.metrics.${metricKey}`, {
+                defaultValue: metricKey || t('common:fallback.unknown'),
+              })}
+            </span>
+          </div>
         </div>
-        <div className="flex items-start justify-between gap-4">
-          <span className="text-gray-400">{t('demographics.segmentComparison.labels.gap')}</span>
-          <span className="text-right text-white font-medium">
-            {formatMetricValue(comparison.absolute_gap, language)}
-          </span>
-        </div>
-        <div className="flex items-start justify-between gap-4">
-          <span className="text-gray-400">{t('demographics.segmentComparison.labels.differencePercent')}</span>
-          <span className="text-right text-white font-medium">
-            {formatMetricValue(comparison.relative_gap_percent, language, { suffix: '%' })}
-          </span>
+
+        <div className="grid grid-cols-3 gap-4 items-center bg-gray-900/50 p-5 rounded-xl border border-gray-700/50">
+          <div className="flex flex-col gap-1 items-start text-left">
+            <div className="text-xs text-emerald-400 font-semibold uppercase tracking-wider bg-emerald-400/10 px-2 py-0.5 rounded flex items-center gap-1">
+              <ArrowUpRight size={14} />
+              {t('demographics.segmentComparison.labels.topSegment')}
+            </div>
+            <div className="text-xl font-bold text-white mt-1 break-all truncate w-full" title={topSegmentLabel}>{topSegmentLabel}</div>
+            <div className="text-lg font-medium text-gray-300">{formatMetricValue(comparison.top_value, language)}</div>
+          </div>
+
+          <div className="flex flex-col items-center justify-center relative">
+            <div className="absolute top-1/2 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-gray-600 to-transparent -translate-y-1/2 -z-10"></div>
+            <div className="bg-gray-800 border border-gray-700 rounded-full w-10 h-10 flex items-center justify-center text-xs font-bold text-gray-400 shadow-md">
+              VS
+            </div>
+            <div className="mt-4 flex flex-col items-center">
+              <span className="text-emerald-400 font-bold text-base flex items-center gap-0.5">
+                +{formatMetricValue(comparison.relative_gap_percent, language, { suffix: '%' })}
+              </span>
+              <span className="text-gray-500 text-xs font-medium bg-gray-800/80 px-2 py-0.5 rounded shadow mt-1">
+                {t('demographics.segmentComparison.labels.gap')}: {formatMetricValue(comparison.absolute_gap, language)}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1 items-end text-right">
+            <div className="text-xs text-rose-400 font-semibold uppercase tracking-wider bg-rose-400/10 px-2 py-0.5 rounded flex items-center gap-1">
+              <ArrowDownRight size={14} />
+              {t('demographics.segmentComparison.labels.bottomSegment')}
+            </div>
+            <div className="text-xl font-bold text-white mt-1 break-all truncate w-full" title={bottomSegmentLabel}>{bottomSegmentLabel}</div>
+            <div className="text-lg font-medium text-gray-300">{formatMetricValue(comparison.bottom_value, language)}</div>
+          </div>
         </div>
       </div>
-      <p className="text-sm text-gray-400 mt-4">{localizedSummary}</p>
-      {backendSummary && backendSummary !== localizedSummary && (
-        <p className="text-xs text-gray-500 mt-2">
-          {/* Backend currently returns English summary prose. Keep it as fallback until the API is locale-neutral. */}
-          {backendSummary}
-        </p>
-      )}
+      
+      <div className="mt-6 flex items-start gap-3 bg-blue-900/10 p-4 rounded-lg border border-blue-500/20">
+        <Zap size={20} className="text-amber-400 shrink-0 mt-0.5" />
+        <p className="text-sm text-blue-100/80 leading-relaxed font-medium">{localizedSummary}</p>
+      </div>
     </div>
   );
 };
