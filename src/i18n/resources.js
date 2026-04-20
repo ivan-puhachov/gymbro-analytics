@@ -1,4 +1,4 @@
-const resources = {
+﻿const resources = {
   en: {
     common: {
       appName: 'GymBro Analytics',
@@ -62,7 +62,7 @@ const resources = {
         },
       },
       overview: {
-        totalEngagements: 'Total Engagements',
+        totalEngagements: 'Engagements Today',
         onboardedUsers: 'Onboarded Users',
         todayDau: 'Today DAU',
         recentApiErrors: 'Recent API Errors',
@@ -367,7 +367,7 @@ const resources = {
         },
       },
       overview: {
-        totalEngagements: 'Всего взаимодействий',
+        totalEngagements: 'Взаимодействия (сегодня)',
         onboardedUsers: 'Пользователи с онбордингом',
         todayDau: 'DAU за сегодня',
         recentApiErrors: 'Недавние ошибки API',
@@ -1118,7 +1118,7 @@ resources.et = {
       },
     },
     overview: {
-      totalEngagements: 'Kaasamisi kokku',
+      totalEngagements: 'Kaasamisi täna',
       onboardedUsers: 'Onboardingu l\u00e4binud kasutajad',
       todayDau: 'T\u00e4nane DAU',
       recentApiErrors: 'Hiljutised API vead',
