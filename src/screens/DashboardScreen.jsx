@@ -323,6 +323,7 @@ export default function DashboardScreen() {
   const [analyticsTrendMetric, setAnalyticsTrendMetric] = useState('requests');
   const [demographicsMetric, setDemographicsMetric] = useState('requests');
   const [modalOpen, setModalOpen] = useState(false);
+  const [modalType, setModalType] = useState('onboarded');
   const [modalUsers, setModalUsers] = useState([]);
   const [modalLoading, setModalLoading] = useState(false);
   const [modalError, setModalError] = useState(false);
@@ -361,6 +362,7 @@ export default function DashboardScreen() {
   }, [dataMode, includeAdmins]);
 
   const handleOnboardedClick = async () => {
+    setModalType('onboarded');
     setModalOpen(true);
     setModalError(false);
     setModalSearch('');
@@ -376,6 +378,46 @@ export default function DashboardScreen() {
       const token = localStorage.getItem('admin_token');
       const users = await api.getAnalytics('users/onboarded', token, {}, dataMode, includeAdmins);
       setModalUsers(users);
+    } catch (err) {
+      console.error(err);
+      setModalError(true);
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const handleDauClick = async () => {
+    setModalType('dau');
+    setModalOpen(true);
+    setModalError(false);
+    setModalSearch('');
+
+    setModalLoading(true);
+    try {
+      const token = localStorage.getItem('admin_token');
+      const currentDataMode = normalizeDataMode(dataMode);
+      const results = await api.getReport('dau-today', token, currentDataMode, includeAdmins);
+      setModalUsers(results);
+    } catch (err) {
+      console.error(err);
+      setModalError(true);
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const handleInteractionsClick = async () => {
+    setModalType('interactions');
+    setModalOpen(true);
+    setModalError(false);
+    setModalSearch('');
+
+    setModalLoading(true);
+    try {
+      const token = localStorage.getItem('admin_token');
+      const currentDataMode = normalizeDataMode(dataMode);
+      const results = await api.getReport('interactions-today?limit=500', token, currentDataMode, includeAdmins);
+      setModalUsers(results);
     } catch (err) {
       console.error(err);
       setModalError(true);
@@ -993,7 +1035,10 @@ export default function DashboardScreen() {
         {activeTab === 'overview' && (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <div className="bg-gray-800 p-6 rounded-xl flex items-center shadow-lg border border-gray-700">
+              <div
+                className="bg-gray-800 p-6 rounded-xl flex items-center shadow-lg border border-gray-700 cursor-pointer hover:bg-gray-700 transition-colors"
+                onClick={handleInteractionsClick}
+              >
                 <Activity className="text-blue-400 mr-4" size={32} />
                 <div>
                   <p className="text-gray-400">{t('overview.totalEngagements')}</p>
@@ -1022,7 +1067,10 @@ export default function DashboardScreen() {
                   </p>
                 </div>
               </div>
-              <div className="bg-gray-800 p-6 rounded-xl flex items-center shadow-lg border border-gray-700">
+              <div
+                className="bg-gray-800 p-6 rounded-xl flex items-center shadow-lg border border-gray-700 cursor-pointer hover:bg-gray-700 transition-colors"
+                onClick={handleDauClick}
+              >
                 <Database className="text-purple-400 mr-4" size={32} />
                 <div>
                   <p className="text-gray-400">{t('overview.todayDau')}</p>
@@ -1657,7 +1705,9 @@ export default function DashboardScreen() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setModalOpen(false)}>
             <div className="bg-gray-800 border border-gray-700 rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col" onClick={(event) => event.stopPropagation()}>
               <div className="p-6 border-b border-gray-700 flex justify-between items-center">
-                <h2 className="text-xl font-bold text-white">{t('modal.onboardedUsers.title')}</h2>
+                <h2 className="text-xl font-bold text-white">
+                  {t(`modal.${modalType === 'dau' ? 'dauToday' : modalType === 'interactions' ? 'interactionsToday' : 'onboardedUsers'}.title`)}
+                </h2>
                 <button
                   onClick={() => setModalOpen(false)}
                   aria-label={t('common:actions.close')}
@@ -1671,8 +1721,8 @@ export default function DashboardScreen() {
                   <div className="mb-4">
                     <input
                       type="text"
-                      aria-label={t('modal.onboardedUsers.searchPlaceholder')}
-                      placeholder={t('modal.onboardedUsers.searchPlaceholder')}
+                      aria-label={t(`modal.${modalType === 'dau' ? 'dauToday' : modalType === 'interactions' ? 'interactionsToday' : 'onboardedUsers'}.searchPlaceholder`)}
+                      placeholder={t(`modal.${modalType === 'dau' ? 'dauToday' : modalType === 'interactions' ? 'interactionsToday' : 'onboardedUsers'}.searchPlaceholder`)}
                       value={modalSearch}
                       onChange={(event) => setModalSearch(event.target.value)}
                       className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
@@ -1680,25 +1730,52 @@ export default function DashboardScreen() {
                   </div>
                 )}
                 {modalLoading ? (
-                  <div className="text-center text-gray-400 py-8">{t('modal.onboardedUsers.loading')}</div>
+                  <div className="text-center text-gray-400 py-8">{t(`modal.${modalType === 'dau' ? 'dauToday' : modalType === 'interactions' ? 'interactionsToday' : 'onboardedUsers'}.loading`)}</div>
                 ) : modalError ? (
-                  <div className="text-center text-red-500 py-8">{t('modal.onboardedUsers.error')}</div>
+                  <div className="text-center text-red-500 py-8">{t(`modal.${modalType === 'dau' ? 'dauToday' : modalType === 'interactions' ? 'interactionsToday' : 'onboardedUsers'}.error`)}</div>
                 ) : modalUsers.length === 0 ? (
-                  <div className="text-center text-gray-400 py-8">{t('modal.onboardedUsers.empty')}</div>
+                  <div className="text-center text-gray-400 py-8">{t(`modal.${modalType === 'dau' ? 'dauToday' : modalType === 'interactions' ? 'interactionsToday' : 'onboardedUsers'}.empty`)}</div>
                 ) : (
                   (() => {
-                    const filteredUsers = modalUsers.filter((user) => (user.email || '').toLowerCase().includes(modalSearch.toLowerCase()));
+                    const filteredUsers = modalUsers.filter((item) => {
+                      const searchLower = modalSearch.toLowerCase();
+                      if (modalType === 'dau') {
+                        return (item.email || '').toLowerCase().includes(searchLower) || (item.name || '').toLowerCase().includes(searchLower);
+                      }
+                      if (modalType === 'interactions') {
+                        return (item.email || '').toLowerCase().includes(searchLower) || (item.detail || '').toLowerCase().includes(searchLower) || (item.interaction_type || '').toLowerCase().includes(searchLower);
+                      }
+                      return (item.email || '').toLowerCase().includes(searchLower);
+                    });
+
                     if (filteredUsers.length === 0) {
-                      return <div className="text-center text-gray-400 py-8">{t('modal.onboardedUsers.noMatches')}</div>;
+                      return <div className="text-center text-gray-400 py-8">{t(`modal.${modalType === 'dau' ? 'dauToday' : modalType === 'interactions' ? 'interactionsToday' : 'onboardedUsers'}.noMatches`)}</div>;
                     }
 
                     return (
                       <div className="space-y-3">
-                        {filteredUsers.map((user) => (
-                          <div key={user.id} className="bg-gray-900 p-4 rounded-lg flex justify-between items-center border border-gray-700 gap-4">
-                            <div className="text-white font-medium truncate min-w-0">{user.email || unknownLabel}</div>
+                        {filteredUsers.map((item, idx) => (
+                          <div key={item.id || idx} className="bg-gray-900 p-4 rounded-lg flex flex-col sm:flex-row justify-between sm:items-center border border-gray-700 gap-4">
+                            <div className="flex flex-col min-w-0">
+                              <div className="text-white font-medium truncate">
+                                {item.email || item.name || unknownLabel}
+                                {modalType === 'dau' && item.name && item.email && item.name !== item.email && ` (${item.name})`}
+                              </div>
+                              {modalType === 'interactions' && (
+                                <div className="text-gray-400 text-sm mt-1 truncate">
+                                  <span className="text-blue-400 font-medium mr-2">{item.interaction_type}</span>
+                                  {item.detail}
+                                </div>
+                              )}
+                            </div>
                             <div className="text-gray-400 text-sm shrink-0">
-                              {formatDateTime(user.created_at, language, { dateStyle: 'medium', timeStyle: 'short' }) || unknownLabel}
+                              {modalType === 'dau' ? (
+                                item.last_active || unknownLabel
+                              ) : modalType === 'interactions' ? (
+                                item.timestamp || unknownLabel
+                              ) : (
+                                formatDateTime(item.created_at, language, { dateStyle: 'medium', timeStyle: 'short' }) || unknownLabel
+                              )}
                             </div>
                           </div>
                         ))}
