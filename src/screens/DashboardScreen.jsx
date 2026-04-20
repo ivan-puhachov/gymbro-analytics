@@ -1050,7 +1050,7 @@ export default function DashboardScreen() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div className="mb-8">
               <ChartCard title={t('overview.charts.dau')}>
                 {errors.dau ? (
                   <div className="flex h-full items-center justify-center text-red-500">{t('overview.errors.dau')}</div>
@@ -1071,26 +1071,6 @@ export default function DashboardScreen() {
                         radius={[4, 4, 0, 0]}
                         name={t('chartSeries.activeUsers')}
                       />
-                    </BarChart>
-                  </ResponsiveContainer>
-                )}
-              </ChartCard>
-
-              <ChartCard title={t('overview.charts.funnel')}>
-                {errors.onboarding ? (
-                  <div className="flex h-full items-center justify-center text-red-500">{t('overview.errors.onboarding')}</div>
-                ) : (
-                  <ResponsiveContainer>
-                    <BarChart data={funnelData} layout="vertical">
-                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal vertical={false} />
-                      <XAxis type="number" stroke="#9CA3AF" />
-                      <YAxis dataKey="stage" type="category" stroke="#9CA3AF" width={150} fontSize={12} />
-                      <Tooltip
-                        cursor={{ fill: '#374151' }}
-                        contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
-                        formatter={(value, name) => [formatMetricValue(value, language), name]}
-                      />
-                      <Bar dataKey="count" fill="#10B981" radius={[0, 4, 4, 0]} name={t('chartSeries.count')} />
                     </BarChart>
                   </ResponsiveContainer>
                 )}
