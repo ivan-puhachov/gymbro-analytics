@@ -258,9 +258,27 @@ const SegmentComparisonCard = ({ comparison }) => {
             <div className="text-lg font-medium text-gray-300">{formatMetricValue(comparison.bottom_value, language)}</div>
           </div>
         </div>
-      </div>
-      
-      <div className="mt-6 flex items-start gap-3 bg-blue-900/10 p-4 rounded-lg border border-blue-500/20">
+        </div>
+
+        {comparison.all_segments && comparison.all_segments.length > 2 && (
+          <div className="mt-4 bg-gray-900/30 rounded-xl p-4 border border-gray-700/50">
+            <div className="text-[10px] font-bold text-gray-500 mb-3 uppercase tracking-wider">
+              {t("demographics.segmentComparison.labels.allSegments", { defaultValue: "All segments" })}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {comparison.all_segments.map((seg, idx) => (
+                <div key={idx} className="flex items-center bg-gray-800/80 rounded-md overflow-hidden border border-gray-700/30 shadow-sm transition-colors hover:bg-gray-800">
+                  <span className="px-2.5 py-1 text-sm font-medium text-gray-300 bg-gray-800/50">{getSegmentValueLabel(dimensionKey, seg.segment, t)}</span>
+                  <span className="px-2 py-1 text-xs font-semibold text-gray-400 border-l border-gray-700/50">
+                    {seg.value}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="mt-6 flex items-start gap-3 bg-blue-900/10 p-4 rounded-lg border border-blue-500/20">
         <Zap size={20} className="text-amber-400 shrink-0 mt-0.5" />
         <p className="text-sm text-blue-100/80 leading-relaxed font-medium">{localizedSummary}</p>
       </div>
@@ -1780,6 +1798,8 @@ export default function DashboardScreen() {
     </div>
   );
 }
+
+
 
 
 

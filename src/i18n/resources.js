@@ -158,6 +158,7 @@
             metric: 'Metric',
             gap: 'Gap',
             differencePercent: 'Difference %',
+              allSegments: 'All segments',
           },
           dimensions: {
             age: 'Age',
@@ -463,6 +464,7 @@
             metric: 'Метрика',
             gap: 'Разрыв',
             differencePercent: 'Разница %',
+              allSegments: 'Все сегменты',
           },
           dimensions: {
             age: 'Возраст',
@@ -1238,6 +1240,7 @@ resources.et = {
           metric: 'M\u00f5\u00f5dik',
           gap: 'Vahe',
           differencePercent: 'Erinevus %',
+            allSegments: 'Kõik segmendid',
         },
         dimensions: {
           age: 'Vanus',
