@@ -590,7 +590,6 @@ export default function DashboardScreen() {
           usersByGender: api.getAnalytics('users-by-gender', token, {}, currentDataMode, includeAdmins),
           usersByWeight: api.getAnalytics('users-by-weight-bucket', token, {}, currentDataMode, includeAdmins),
           usersByHeight: api.getAnalytics('users-by-height-bucket', token, {}, currentDataMode, includeAdmins),
-          userDistribution: api.getAnalytics('user-distribution', token, demographicsQueryParams, currentDataMode, includeAdmins),
           hourlyUsage: api.getAnalytics('hourly-usage', token, demographicsQueryParams, currentDataMode, includeAdmins),
         };
 
@@ -635,7 +634,6 @@ export default function DashboardScreen() {
           usersByGender: results.usersByGender.status === 'rejected',
           usersByWeight: results.usersByWeight.status === 'rejected',
           usersByHeight: results.usersByHeight.status === 'rejected',
-          userDistribution: results.userDistribution.status === 'rejected',
           hourlyUsage: results.hourlyUsage.status === 'rejected',
         });
 
@@ -668,7 +666,6 @@ export default function DashboardScreen() {
           usersByGender: safeData(results.usersByGender, []),
           usersByWeight: safeData(results.usersByWeight, []),
           usersByHeight: safeData(results.usersByHeight, []),
-          userDistribution: safeData(results.userDistribution, []),
           hourlyUsage: safeData(results.hourlyUsage, []),
         });
       } catch (err) {
@@ -1620,48 +1617,11 @@ export default function DashboardScreen() {
 
             <div className="mb-8">
               <SectionHeader
-                title="AI Usage Patterns"
-                description="Distribution of users based on AI request volume and hourly usage"
+                title="Hourly AI Usage Pattern"
+                description="Distribution of AI requests continuously across 24 hours of the day"
               />
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <ChartCard title="User Distribution by AI Usage">
-                  {errors.userDistribution ? (
-                    <div className="flex h-full items-center justify-center text-red-500">Failed to load user distribution</div>
-                  ) : data.userDistribution && data.userDistribution.length > 0 ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={data.userDistribution}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
-                        <XAxis
-                          dataKey="bucket"
-                          stroke="#9CA3AF"
-                          tick={{ fill: '#9CA3AF', fontSize: 12 }}
-                          tickMargin={10}
-                        />
-                        <YAxis
-                          stroke="#9CA3AF"
-                          tick={{ fill: '#9CA3AF', fontSize: 12 }}
-                        />
-                        <Tooltip
-                          contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#f3f4f6' }}
-                          cursor={{ fill: '#374151', opacity: 0.4 }}
-                          formatter={(value) => [`${value} Users`, 'Users']}
-                        />
-                        <Bar
-                          dataKey="users_count"
-                          fill="#8B5CF6"
-                          radius={[4, 4, 0, 0]}
-                          name="Users"
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className="flex h-full items-center justify-center text-gray-500">
-                      No user distribution data available
-                    </div>
-                  )}
-                </ChartCard>
-
-                <ChartCard title="Hourly AI Usage Pattern">
+              <div className="grid grid-cols-1 gap-8">
+                <ChartCard title="Hourly Requests">
                   {errors.hourlyUsage ? (
                     <div className="flex h-full items-center justify-center text-red-500">Failed to load hourly usage</div>
                   ) : data.hourlyUsage && data.hourlyUsage.length > 0 ? (
