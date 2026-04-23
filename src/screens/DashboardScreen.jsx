@@ -409,28 +409,6 @@ function getUserDisplayLabel(email, fallback) {
   return `${localPart.slice(0, USER_AXIS_LABEL_MAX_LENGTH - 3)}...`;
 }
 
-function extractDateKey(value) {
-  if (typeof value === 'string') {
-    const match = value.match(/^\d{4}-\d{2}-\d{2}/);
-    if (match) return match[0];
-  }
-
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return null;
-
-  return parsed.toISOString().slice(0, 10);
-}
-
-function isWithinDateRange(value, startDate, endDate) {
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return false;
-
-  const start = new Date(`${startDate}T00:00:00`);
-  const end = new Date(`${endDate}T23:59:59.999`);
-
-  return parsed >= start && parsed <= end;
-}
-
 export default function DashboardScreen() {
   const { t, i18n } = useTranslation(['dashboard', 'common']);
   const language = i18n.resolvedLanguage;
@@ -810,33 +788,6 @@ export default function DashboardScreen() {
   const engagementMap = new Map(engagementRows.map((item) => [item.user_id, item]));
 
   const userUsageById = new Map(userReportsData.map((user) => [user.user_id, user]));
-  const onboardedUsersInRange = onboardedUsersData.filter((user) => isWithinDateRange(user.created_at, startDate, endDate));
-  const onboardedUsersWithUsageCount = onboardedUsersData.filter(
-    (user) => getValidNumber(userUsageById.get(String(user.id))?.requests_count) > 0,
-  ).length;
-  const zeroUsageOnboardedCount = Math.max(onboardedUsersData.length - onboardedUsersWithUsageCount, 0);
-  const avgRequestsPerOnboarded = onboardedUsersData.length > 0
-    ? onboardedUsersData.reduce(
-        (sum, user) => sum + getValidNumber(userUsageById.get(String(user.id))?.requests_count),
-        0,
-      ) / onboardedUsersData.length
-    : 0;
-
-  const onboardedTimelineMap = onboardedUsersInRange.reduce((accumulator, user) => {
-    const dateKey = extractDateKey(user.created_at);
-    if (!dateKey) return accumulator;
-    accumulator[dateKey] = (accumulator[dateKey] || 0) + 1;
-    return accumulator;
-  }, {});
-
-  const onboardedTimelineData = Object.entries(onboardedTimelineMap)
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([day, count]) => ({
-      day,
-      count,
-      dayLabel: formatDate(day, language, { month: 'short', day: 'numeric' }) || day,
-    }));
-
   const analyticsTrendOptions = [
     { value: 'requests', label: t('analytics.usageTrends.metrics.requests') },
     { value: 'tokens', label: t('analytics.usageTrends.metrics.tokens') },
@@ -1388,73 +1339,6 @@ export default function DashboardScreen() {
                 <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-sm text-gray-400">
                   {t('analytics.userIntensity.empty.users')}
                 </div>
-              )}
-            </div>
-
-            <div className="mb-8">
-              <SectionHeader
-                title={t('analytics.adoption.title')}
-                description={t('analytics.adoption.description')}
-              />
-              {errors.onboardedUsers ? (
-                <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-sm text-red-500">
-                  {t('analytics.adoption.errors.onboarded')}
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
-                    <MetricCard
-                      title={t('analytics.adoption.metrics.totalOnboardedUsers.title')}
-                      value={formatMetricValue(onboardedUsersData.length, language, { maximumFractionDigits: 0 })}
-                      subtitle={t('analytics.adoption.metrics.totalOnboardedUsers.subtitle')}
-                    />
-                    <MetricCard
-                      title={t('analytics.adoption.metrics.onboardedInRange.title')}
-                      value={formatMetricValue(onboardedUsersInRange.length, language, { maximumFractionDigits: 0 })}
-                      subtitle={t('analytics.adoption.metrics.onboardedInRange.subtitle')}
-                    />
-                    <MetricCard
-                      title={t('analytics.adoption.metrics.zeroUsage.title')}
-                      value={formatMetricValue(zeroUsageOnboardedCount, language, { maximumFractionDigits: 0 })}
-                      subtitle={t('analytics.adoption.metrics.zeroUsage.subtitle')}
-                    />
-                    <MetricCard
-                      title={t('analytics.adoption.metrics.avgRequestsPerOnboarded.title')}
-                      value={formatMetricValue(avgRequestsPerOnboarded, language)}
-                      subtitle={t('analytics.adoption.metrics.avgRequestsPerOnboarded.subtitle')}
-                    />
-                  </div>
-
-                  <ChartCard
-                    title={t('analytics.adoption.charts.onboardedOverTime')}
-                    description={t('analytics.adoption.charts.onboardedOverTimeDescription')}
-                  >
-                    {onboardedTimelineData.length > 0 ? (
-                      <ResponsiveContainer>
-                        <BarChart data={onboardedTimelineData}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                          <XAxis dataKey="dayLabel" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
-                          <YAxis stroke="#9CA3AF" />
-                          <Tooltip
-                            cursor={{ fill: '#374151' }}
-                            contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
-                            formatter={(value, name) => [formatMetricValue(value, language, { maximumFractionDigits: 0 }), name]}
-                          />
-                          <Bar
-                            dataKey="count"
-                            fill="#10B981"
-                            radius={[4, 4, 0, 0]}
-                            name={t('analytics.adoption.charts.onboardedSeries')}
-                          />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-gray-500">
-                        {t('analytics.adoption.empty.onboarded')}
-                      </div>
-                    )}
-                  </ChartCard>
-                </>
               )}
             </div>
 
