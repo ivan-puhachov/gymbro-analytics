@@ -2,6 +2,9 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
+  PieChart,
+  Pie,
+  Cell,
   Area,
   AreaChart,
   Bar,
@@ -590,6 +593,8 @@ export default function DashboardScreen() {
           usersByGender: api.getAnalytics('users-by-gender', token, {}, currentDataMode, includeAdmins),
           usersByWeight: api.getAnalytics('users-by-weight-bucket', token, {}, currentDataMode, includeAdmins),
           usersByHeight: api.getAnalytics('users-by-height-bucket', token, {}, currentDataMode, includeAdmins),
+          userDistribution: api.getAnalytics('user-distribution', token, demographicsQueryParams, currentDataMode, includeAdmins),
+          hourlyUsage: api.getAnalytics('hourly-usage', token, demographicsQueryParams, currentDataMode, includeAdmins),
         };
 
         const keys = Object.keys(promiseMap);
@@ -633,6 +638,8 @@ export default function DashboardScreen() {
           usersByGender: results.usersByGender.status === 'rejected',
           usersByWeight: results.usersByWeight.status === 'rejected',
           usersByHeight: results.usersByHeight.status === 'rejected',
+          userDistribution: results.userDistribution.status === 'rejected',
+          hourlyUsage: results.hourlyUsage.status === 'rejected',
         });
 
         const safeData = (result, defaultValue) => (result?.status === 'fulfilled' ? result.value : defaultValue);
@@ -664,6 +671,8 @@ export default function DashboardScreen() {
           usersByGender: safeData(results.usersByGender, []),
           usersByWeight: safeData(results.usersByWeight, []),
           usersByHeight: safeData(results.usersByHeight, []),
+          userDistribution: safeData(results.userDistribution, []),
+          hourlyUsage: safeData(results.hourlyUsage, []),
         });
       } catch (err) {
         console.error('Unexpected error in loadData:', err);
@@ -1606,6 +1615,73 @@ export default function DashboardScreen() {
                   ) : (
                     <div className="flex h-full items-center justify-center text-gray-500">
                       {t('demographics.userDistribution.empty.height')}
+                    </div>
+                  )}
+                </ChartCard>
+              </div>
+            </div>
+
+            <div className="mb-8">
+              <SectionHeader
+                title="AI Usage Patterns"
+                description="Distribution of users based on AI request volume and hourly usage"
+              />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <ChartCard title="User Distribution by AI Usage">
+                  {errors.userDistribution ? (
+                    <div className="flex h-full items-center justify-center text-red-500">Failed to load user distribution</div>
+                  ) : data.userDistribution && data.userDistribution.length > 0 ? (
+                    <ResponsiveContainer>
+                      <PieChart>
+                        <Pie
+                          data={data.userDistribution}
+                          dataKey="users_count"
+                          nameKey="bucket"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={120}
+                          innerRadius={60}
+                          label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                          labelLine={false}
+                        >
+                          {data.userDistribution.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={['#3B82F6', '#8B5CF6', '#10B981'][index % 3]} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
+                          formatter={(value, name, props) => [`${value} Users`, name]}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-gray-500">
+                      No user distribution data available
+                    </div>
+                  )}
+                </ChartCard>
+
+                <ChartCard title="Hourly AI Usage Pattern">
+                  {errors.hourlyUsage ? (
+                    <div className="flex h-full items-center justify-center text-red-500">Failed to load hourly usage</div>
+                  ) : data.hourlyUsage && data.hourlyUsage.length > 0 ? (
+                    <ResponsiveContainer>
+                      <BarChart data={data.hourlyUsage}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis dataKey="hour" stroke="#9CA3AF" fontSize={12} tickMargin={10} interval={1} />
+                        <YAxis stroke="#9CA3AF" />
+                        <Tooltip
+                          cursor={{ fill: '#374151' }}
+                          contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
+                          labelFormatter={(label) => `${label} - ${label.replace(':00', ':59')}`}
+                          formatter={(value) => [value, 'AI Requests']}
+                        />
+                        <Bar dataKey="requests_count" fill="#F59E0B" radius={[4, 4, 0, 0]} name="Requests" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-gray-500">
+                      No hourly usage data available
                     </div>
                   )}
                 </ChartCard>
