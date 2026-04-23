@@ -726,6 +726,20 @@ resources.en.dashboard = {
         avgResponseTime: 'Avg Response Time',
       },
     },
+    aiAfterEvents: {
+      title: 'AI Usage After User Actions',
+      description: 'AI requests made within 3 hours after training, meal logging, or sleep sync events.',
+      charts: {
+        requests: 'AI Requests After User Actions',
+      },
+      events: {
+        training: 'Training',
+        meals: 'Meals',
+        sleep: 'Sleep',
+      },
+      error: 'Failed to load AI-after-action data.',
+      empty: 'No AI requests followed these actions in the selected range.',
+    },
     userIntensity: {
       title: 'User Intensity',
       description: 'Current /reports/users snapshot of the most active AI users. This section does not strictly follow the dashboard date filters.',
@@ -922,6 +936,20 @@ resources.ru.dashboard = {
         tokens: 'Токены',
         avgResponseTime: 'Среднее время ответа',
       },
+    },
+    aiAfterEvents: {
+      title: 'AI-использование после действий пользователя',
+      description: 'AI-запросы в течение 3 часов после тренировки, добавления еды или синхронизации сна.',
+      charts: {
+        requests: 'AI-запросы после действий',
+      },
+      events: {
+        training: 'Тренировки',
+        meals: 'Питание',
+        sleep: 'Сон',
+      },
+      error: 'Не удалось загрузить данные AI после действий.',
+      empty: 'В выбранном диапазоне нет AI-запросов после этих действий.',
     },
     userIntensity: {
       title: 'Интенсивность пользователей',
@@ -1413,6 +1441,20 @@ resources.et = {
           tokens: 'Tokenid',
           avgResponseTime: 'Keskm. vastamisaeg',
         },
+      },
+      aiAfterEvents: {
+        title: 'AI kasutus pärast kasutaja tegevusi',
+        description: 'AI päringud 3 tunni jooksul pärast treeningut, toidukorra lisamist või une sünkroniseerimist.',
+        charts: {
+          requests: 'AI päringud pärast tegevusi',
+        },
+        events: {
+          training: 'Treening',
+          meals: 'Toitumine',
+          sleep: 'Uni',
+        },
+        error: 'AI päringute ja tegevuste seose laadimine ebaõnnestus.',
+        empty: 'Valitud vahemikus ei järgnenud nendele tegevustele AI päringuid.',
       },
       userIntensity: {
         title: 'Kasutajate intensiivsus',

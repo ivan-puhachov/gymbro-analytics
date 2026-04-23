@@ -572,6 +572,7 @@ export default function DashboardScreen() {
           usersByWeight: api.getAnalytics('users-by-weight-bucket', token, {}, includeAdmins),
           usersByHeight: api.getAnalytics('users-by-height-bucket', token, {}, includeAdmins),
           hourlyUsage: api.getAnalytics('hourly-usage', token, demographicsQueryParams, includeAdmins),
+          aiAfterEvents: api.getAnalytics('ai-after-events', token, demographicsQueryParams, includeAdmins),
         };
 
         const keys = Object.keys(promiseMap);
@@ -616,6 +617,7 @@ export default function DashboardScreen() {
           usersByWeight: results.usersByWeight.status === 'rejected',
           usersByHeight: results.usersByHeight.status === 'rejected',
           hourlyUsage: results.hourlyUsage.status === 'rejected',
+          aiAfterEvents: results.aiAfterEvents.status === 'rejected',
         });
 
         const safeData = (result, defaultValue) => (result?.status === 'fulfilled' ? result.value : defaultValue);
@@ -648,6 +650,7 @@ export default function DashboardScreen() {
           usersByWeight: safeData(results.usersByWeight, []),
           usersByHeight: safeData(results.usersByHeight, []),
           hourlyUsage: safeData(results.hourlyUsage, []),
+          aiAfterEvents: safeData(results.aiAfterEvents, []),
         });
       } catch (err) {
         console.error('Unexpected error in loadData:', err);
@@ -796,6 +799,13 @@ export default function DashboardScreen() {
     meals_events_count: getValidNumber(item.meals_events_count),
     training_events_count: getValidNumber(item.training_events_count),
   }));
+
+  const aiAfterEventsData = (Array.isArray(data.aiAfterEvents) ? data.aiAfterEvents : []).map((item) => ({
+    ...item,
+    event_label: t(`analytics.aiAfterEvents.events.${item.event}`, { defaultValue: item.event }),
+    ai_requests: getValidNumber(item.ai_requests),
+  }));
+  const hasAiAfterEventsData = aiAfterEventsData.some((item) => item.ai_requests > 0);
 
   const engagementMap = new Map(engagementRows.map((item) => [item.user_id, item]));
 
@@ -1274,6 +1284,41 @@ export default function DashboardScreen() {
                 ) : (
                   <div className="flex h-full items-center justify-center text-gray-500">
                     {t('analytics.usageTrends.empty')}
+                  </div>
+                )}
+              </ChartCard>
+            </div>
+
+            <div className="mb-8">
+              <SectionHeader
+                title={t('analytics.aiAfterEvents.title')}
+                description={t('analytics.aiAfterEvents.description')}
+              />
+              <ChartCard title={t('analytics.aiAfterEvents.charts.requests')}>
+                {errors.aiAfterEvents ? (
+                  <div className="flex h-full items-center justify-center text-red-500">{t('analytics.aiAfterEvents.error')}</div>
+                ) : hasAiAfterEventsData ? (
+                  <ResponsiveContainer>
+                    <BarChart data={aiAfterEventsData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                      <XAxis dataKey="event_label" stroke="#9CA3AF" fontSize={12} tickMargin={10} />
+                      <YAxis stroke="#9CA3AF" allowDecimals={false} />
+                      <Tooltip
+                        cursor={{ fill: '#374151' }}
+                        contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
+                        formatter={(value) => [formatMetricValue(value, language, { maximumFractionDigits: 0 }), t('chartSeries.requests')]}
+                      />
+                      <Bar
+                        dataKey="ai_requests"
+                        fill="#F59E0B"
+                        radius={[4, 4, 0, 0]}
+                        name={t('chartSeries.requests')}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex h-full items-center justify-center text-gray-500">
+                    {t('analytics.aiAfterEvents.empty')}
                   </div>
                 )}
               </ChartCard>
