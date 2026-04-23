@@ -76,5 +76,30 @@ export const api = {
     });
     if (!res.ok) throw createApiError(`Failed to fetch analytics: ${endpoint}`, res.status, endpoint);
     return res.json();
+  },
+
+  async downloadAnalyticsReport(token, queryParams = {}, dataMode = DEFAULT_DATA_MODE, includeAdmins = false) {
+    const url = new URL(BASE_URL + '/analytics/export-report');
+    Object.keys(queryParams).forEach(key => {
+      if (queryParams[key] !== undefined && queryParams[key] !== null) {
+        url.searchParams.append(key, queryParams[key]);
+      }
+    });
+    
+    const res = await fetch(url.toString(), {
+      headers: buildHeaders(token, dataMode, includeAdmins),
+    });
+    
+    if (!res.ok) throw createApiError('Failed to fetch analytics report', res.status);
+    
+    const blob = await res.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = 'gymbro_analytics_report.txt';
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(downloadUrl);
+    document.body.removeChild(a);
   }
 };

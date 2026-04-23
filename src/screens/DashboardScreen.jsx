@@ -28,6 +28,7 @@ import {
   ShieldAlert,
   Users,
   Zap,
+  Download,
 } from 'lucide-react';
 import { api, DATA_MODE_STORAGE_KEY, DEFAULT_DATA_MODE, normalizeDataMode } from '../api';
 import DataModeToggle from '../components/DataModeToggle';
@@ -684,6 +685,18 @@ export default function DashboardScreen() {
     navigate('/login');
   };
 
+  const handleDownloadReport = async () => {
+    const token = localStorage.getItem('admin_token');
+    if (!token) return;
+    try {
+      const queryParams = { start: startDate, end: endDate };
+      await api.downloadAnalyticsReport(token, queryParams, dataMode, includeAdmins);
+    } catch (err) {
+      console.error('Failed to download report', err);
+      // maybe add a toast error handling here if the app uses one
+    }
+  };
+
   if (loading) {
     return <div className="flex h-screen items-center justify-center bg-gray-900 text-white">{t('loading')}</div>;
   }
@@ -1123,6 +1136,14 @@ export default function DashboardScreen() {
             />
           </div>
           <div className="flex w-full flex-wrap items-center justify-center gap-3 sm:ml-auto sm:w-auto sm:justify-end">
+            <button
+              onClick={handleDownloadReport}
+              className="flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-500 shadow-sm"
+              title="Download Report"
+            >
+              <Download size={16} />
+              Export Report
+            </button>
             <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-300 font-medium mr-2">
               <input
                 type="checkbox"
