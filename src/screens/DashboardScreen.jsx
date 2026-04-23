@@ -2,9 +2,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  PieChart,
-  Pie,
-  Cell,
   Area,
   AreaChart,
   Bar,
@@ -1631,29 +1628,31 @@ export default function DashboardScreen() {
                   {errors.userDistribution ? (
                     <div className="flex h-full items-center justify-center text-red-500">Failed to load user distribution</div>
                   ) : data.userDistribution && data.userDistribution.length > 0 ? (
-                    <ResponsiveContainer>
-                      <PieChart>
-                        <Pie
-                          data={data.userDistribution}
-                          dataKey="users_count"
-                          nameKey="bucket"
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={120}
-                          innerRadius={60}
-                          label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                          labelLine={false}
-                        >
-                          {data.userDistribution.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={['#3B82F6', '#8B5CF6', '#10B981'][index % 3]} />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          itemStyle={{ color: '#FFF' }}
-                          contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
-                          formatter={(value, name, props) => [`${value} Users`, name]}
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={data.userDistribution}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
+                        <XAxis
+                          dataKey="bucket"
+                          stroke="#9CA3AF"
+                          tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                          tickMargin={10}
                         />
-                      </PieChart>
+                        <YAxis
+                          stroke="#9CA3AF"
+                          tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                        />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#f3f4f6' }}
+                          cursor={{ fill: '#374151', opacity: 0.4 }}
+                          formatter={(value) => [`${value} Users`, 'Users']}
+                        />
+                        <Bar
+                          dataKey="users_count"
+                          fill="#8B5CF6"
+                          radius={[4, 4, 0, 0]}
+                          name="Users"
+                        />
+                      </BarChart>
                     </ResponsiveContainer>
                   ) : (
                     <div className="flex h-full items-center justify-center text-gray-500">
