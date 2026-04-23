@@ -438,13 +438,6 @@ export default function DashboardScreen() {
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
   const [activeTab, setActiveTab] = useState('overview');
-  const [dataMode, setDataMode] = useState(() => {
-    try {
-      return normalizeDataMode(localStorage.getItem(DATA_MODE_STORAGE_KEY));
-    } catch {
-      return DEFAULT_DATA_MODE;
-    }
-  });
   const [includeAdmins, setIncludeAdmins] = useState(() => localStorage.getItem('gymbro_analytics_include_admins') === 'true');
   const [startDate, setStartDate] = useState(() => {
     const d = new Date();
@@ -469,14 +462,6 @@ export default function DashboardScreen() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(DATA_MODE_STORAGE_KEY, normalizeDataMode(dataMode));
-    } catch {
-      /* Ignore storage write failures. */
-    }
-  }, [dataMode]);
-
-  useEffect(() => {
-    try {
       localStorage.setItem('gymbro_analytics_include_admins', String(includeAdmins));
     } catch {
       /* Ignore storage write failures. */
@@ -492,7 +477,7 @@ export default function DashboardScreen() {
     setModalLoading(false);
     setModalError(false);
     setModalSearch('');
-  }, [dataMode, includeAdmins]);
+  }, [includeAdmins]);
 
   const handleOnboardedClick = async () => {
     setModalType('onboarded');
@@ -509,7 +494,7 @@ export default function DashboardScreen() {
     setModalLoading(true);
     try {
       const token = localStorage.getItem('admin_token');
-      const users = await api.getAnalytics('users/onboarded', token, {}, dataMode, includeAdmins);
+      const users = await api.getAnalytics('users/onboarded', token, {}, includeAdmins);
       setModalUsers(users);
     } catch (err) {
       console.error(err);
@@ -528,8 +513,7 @@ export default function DashboardScreen() {
     setModalLoading(true);
     try {
       const token = localStorage.getItem('admin_token');
-      const currentDataMode = normalizeDataMode(dataMode);
-      const results = await api.getReport('dau-today', token, currentDataMode, includeAdmins);
+      const results = await api.getReport('dau-today', token, includeAdmins);
       setModalUsers(results);
     } catch (err) {
       console.error(err);
@@ -548,8 +532,7 @@ export default function DashboardScreen() {
     setModalLoading(true);
     try {
       const token = localStorage.getItem('admin_token');
-      const currentDataMode = normalizeDataMode(dataMode);
-      const results = await api.getReport('interactions-today?limit=500', token, currentDataMode, includeAdmins);
+      const results = await api.getReport('interactions-today?limit=500', token, includeAdmins);
       setModalUsers(results);
     } catch (err) {
       console.error(err);
@@ -564,32 +547,31 @@ export default function DashboardScreen() {
 
     async function loadData() {
       const token = localStorage.getItem('admin_token');
-      const currentDataMode = normalizeDataMode(dataMode);
       setLoading(true);
       try {
         const queryParams = { start: startDate, end: endDate, granularity };
         const demographicsQueryParams = { start: startDate, end: endDate };
 
         const promiseMap = {
-          dau: api.getReport('daily-active-users', token, currentDataMode, includeAdmins),
-          onboarding: api.getReport('onboarding', token, currentDataMode, includeAdmins),
-          aiHealth: api.getReport('ai-health', token, currentDataMode, includeAdmins),
-          hourly: api.getReport('hourly-activity', token, currentDataMode, includeAdmins),
-          engagement: api.getReport('engagement?limit=1000', token, currentDataMode, includeAdmins),
-          userReports: api.getReport('users?limit=1000', token, currentDataMode, includeAdmins),
-          usageSummary: api.getAnalytics('usage-summary', token, demographicsQueryParams, currentDataMode, includeAdmins),
-          onboardedUsers: api.getAnalytics('users/onboarded', token, {}, currentDataMode, includeAdmins),
-          segmentComparison: api.getAnalytics('segment-comparison', token, demographicsQueryParams, currentDataMode, includeAdmins),
-          ageGroup: api.getAnalytics('by-age-group', token, demographicsQueryParams, currentDataMode, includeAdmins),
-          timeRange: api.getAnalytics('by-time-range', token, queryParams, currentDataMode, includeAdmins),
-          genderInsights: api.getAnalytics('by-gender', token, demographicsQueryParams, currentDataMode, includeAdmins),
-          weightInsights: api.getAnalytics('by-weight-bucket', token, demographicsQueryParams, currentDataMode, includeAdmins),
-          heightInsights: api.getAnalytics('by-height-bucket', token, demographicsQueryParams, currentDataMode, includeAdmins),
-          usersByAgeGroup: api.getAnalytics('users-by-age-group', token, {}, currentDataMode, includeAdmins),
-          usersByGender: api.getAnalytics('users-by-gender', token, {}, currentDataMode, includeAdmins),
-          usersByWeight: api.getAnalytics('users-by-weight-bucket', token, {}, currentDataMode, includeAdmins),
-          usersByHeight: api.getAnalytics('users-by-height-bucket', token, {}, currentDataMode, includeAdmins),
-          hourlyUsage: api.getAnalytics('hourly-usage', token, demographicsQueryParams, currentDataMode, includeAdmins),
+          dau: api.getReport('daily-active-users', token, includeAdmins),
+          onboarding: api.getReport('onboarding', token, includeAdmins),
+          aiHealth: api.getReport('ai-health', token, includeAdmins),
+          hourly: api.getReport('hourly-activity', token, includeAdmins),
+          engagement: api.getReport('engagement?limit=1000', token, includeAdmins),
+          userReports: api.getReport('users?limit=1000', token, includeAdmins),
+          usageSummary: api.getAnalytics('usage-summary', token, demographicsQueryParams, includeAdmins),
+          onboardedUsers: api.getAnalytics('users/onboarded', token, {}, includeAdmins),
+          segmentComparison: api.getAnalytics('segment-comparison', token, demographicsQueryParams, includeAdmins),
+          ageGroup: api.getAnalytics('by-age-group', token, demographicsQueryParams, includeAdmins),
+          timeRange: api.getAnalytics('by-time-range', token, queryParams, includeAdmins),
+          genderInsights: api.getAnalytics('by-gender', token, demographicsQueryParams, includeAdmins),
+          weightInsights: api.getAnalytics('by-weight-bucket', token, demographicsQueryParams, includeAdmins),
+          heightInsights: api.getAnalytics('by-height-bucket', token, demographicsQueryParams, includeAdmins),
+          usersByAgeGroup: api.getAnalytics('users-by-age-group', token, {}, includeAdmins),
+          usersByGender: api.getAnalytics('users-by-gender', token, {}, includeAdmins),
+          usersByWeight: api.getAnalytics('users-by-weight-bucket', token, {}, includeAdmins),
+          usersByHeight: api.getAnalytics('users-by-height-bucket', token, {}, includeAdmins),
+          hourlyUsage: api.getAnalytics('hourly-usage', token, demographicsQueryParams, includeAdmins),
         };
 
         const keys = Object.keys(promiseMap);
@@ -680,7 +662,7 @@ export default function DashboardScreen() {
     return () => {
       isCancelled = true;
     };
-  }, [dataMode, navigate, startDate, endDate, granularity, includeAdmins]);
+  }, [navigate, startDate, endDate, granularity, includeAdmins]);
 
   const handleLogout = () => {
     localStorage.removeItem('admin_token');
@@ -692,7 +674,7 @@ export default function DashboardScreen() {
     if (!token) return;
     try {
       const queryParams = { start: startDate, end: endDate };
-      await api.downloadAnalyticsReport(token, queryParams, dataMode, includeAdmins);
+      await api.downloadAnalyticsReport(token, queryParams, includeAdmins);
     } catch (err) {
       console.error('Failed to download report', err);
       // maybe add a toast error handling here if the app uses one
@@ -1054,8 +1036,6 @@ export default function DashboardScreen() {
 
   const activeNavItem = NAV_ITEMS.find((item) => item.id === activeTab);
   const activeTabTitle = activeNavItem ? t(activeNavItem.labelKey) : t('headerFallback');
-  const normalizedDataMode = normalizeDataMode(dataMode);
-  const isTestDataMode = normalizedDataMode === 'test';
 
   return (
     <div className="flex h-screen bg-gray-900 overflow-hidden">
@@ -1104,15 +1084,6 @@ export default function DashboardScreen() {
             <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">
               {activeTabTitle}
             </h1>
-            <span
-              className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${
-                isTestDataMode
-                  ? 'border border-amber-400/40 bg-amber-500/15 text-amber-200'
-                  : 'border border-emerald-400/30 bg-emerald-500/10 text-emerald-200'
-              }`}
-            >
-              {isTestDataMode ? t('common:dataMode.badges.test') : t('common:dataMode.badges.production')}
-            </span>
           </div>
         </header>
 
@@ -1155,11 +1126,6 @@ export default function DashboardScreen() {
               />
               Include Admins
             </label>
-            <DataModeToggle
-              value={dataMode}
-              onChange={setDataMode}
-              className="w-full justify-center sm:w-auto"
-            />
             <LanguageToggle className="w-full justify-center sm:w-auto shrink-0" />
           </div>
         </div>
