@@ -1649,6 +1649,7 @@ export default function DashboardScreen() {
                           ))}
                         </Pie>
                         <Tooltip
+                          itemStyle={{ color: '#FFF' }}
                           contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#FFF' }}
                           formatter={(value, name, props) => [`${value} Users`, name]}
                         />
