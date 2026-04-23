@@ -45,7 +45,7 @@
       navigation: {
         overview: 'Overview',
         telemetry: 'Telemetry',
-        demographics: 'Demographics',
+        demographics: 'Segment Analysis',
         system: 'System',
       },
       loading: 'Loading Analytics Data...',
@@ -351,7 +351,7 @@
       navigation: {
         overview: 'Обзор',
         telemetry: 'Телеметрия',
-        demographics: 'Демография',
+        demographics: 'Анализ сегментов',
         system: 'Система',
       },
       loading: 'Загрузка аналитики...',
@@ -1102,7 +1102,7 @@ resources.et = {
     navigation: {
       overview: '\u00dclevaade',
       analytics: 'Anal\u00fc\u00fctika',
-      demographics: 'Demograafia',
+      demographics: 'Segmentide analüüs',
       telemetry: 'Telemeetria',
       system: 'S\u00fcsteem',
     },

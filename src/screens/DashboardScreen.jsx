@@ -299,6 +299,8 @@ function getValidNumber(value) {
   return Number.isFinite(numericValue) ? numericValue : 0;
 }
 
+const USER_AXIS_LABEL_MAX_LENGTH = 12;
+
 function getUserDisplayLabel(email, fallback) {
   const normalizedEmail = typeof email === 'string' ? email.trim() : '';
   if (!normalizedEmail) return fallback;
@@ -306,7 +308,9 @@ function getUserDisplayLabel(email, fallback) {
   const [localPart] = normalizedEmail.split('@');
   if (!localPart) return normalizedEmail;
 
-  return localPart.length > 12 ? `${localPart.slice(0, 12)}ā€¦` : localPart;
+  if (localPart.length <= USER_AXIS_LABEL_MAX_LENGTH) return localPart;
+
+  return `${localPart.slice(0, USER_AXIS_LABEL_MAX_LENGTH - 3)}...`;
 }
 
 function extractDateKey(value) {
@@ -680,39 +684,6 @@ export default function DashboardScreen() {
         };
       })
     : [];
-
-  const usageOverviewMetrics = [
-    {
-      key: 'total_requests',
-      title: t('demographics.usageOverview.metrics.totalRequests.title'),
-      value: formatMetricValue(usageSummary.total_requests, language, { maximumFractionDigits: 0 }),
-      subtitle: t('demographics.usageOverview.metrics.totalRequests.subtitle'),
-    },
-    {
-      key: 'active_users',
-      title: t('demographics.usageOverview.metrics.activeUsers.title'),
-      value: formatMetricValue(usageSummary.active_users, language, { maximumFractionDigits: 0 }),
-      subtitle: t('demographics.usageOverview.metrics.activeUsers.subtitle'),
-    },
-    {
-      key: 'avg_requests_per_user',
-      title: t('demographics.usageOverview.metrics.avgRequestsPerUser.title'),
-      value: formatMetricValue(usageSummary.avg_requests_per_user, language),
-      subtitle: t('demographics.usageOverview.metrics.avgRequestsPerUser.subtitle'),
-    },
-    {
-      key: 'avg_tokens',
-      title: t('demographics.usageOverview.metrics.avgTokens.title'),
-      value: formatMetricValue(usageSummary.avg_tokens, language),
-      subtitle: t('demographics.usageOverview.metrics.avgTokens.subtitle'),
-    },
-    {
-      key: 'avg_response_time',
-      title: t('demographics.usageOverview.metrics.avgResponseTime.title'),
-      value: formatMetricValue(usageSummary.avg_response_time, language, { suffix: msSuffix }),
-      subtitle: t('demographics.usageOverview.metrics.avgResponseTime.subtitle'),
-    },
-  ];
 
   const onboardedUsersData = Array.isArray(data.onboardedUsers) ? data.onboardedUsers : [];
   const userReportsData = (data.userReports || []).map((item) => ({
@@ -1396,24 +1367,6 @@ export default function DashboardScreen() {
 
         {activeTab === 'demographics' && (
           <>
-            <div className="mb-8">
-              <SectionHeader
-                title={t('demographics.usageOverview.title')}
-                description={t('demographics.usageOverview.description')}
-              />
-              {errors.usageSummary ? (
-                <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-sm text-red-500">
-                  {t('demographics.usageOverview.error')}
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
-                  {usageOverviewMetrics.map((metric) => (
-                    <MetricCard key={metric.key} title={metric.title} value={metric.value} subtitle={metric.subtitle} />
-                  ))}
-                </div>
-              )}
-            </div>
-
             <div className="mb-8">
               <SectionHeader
                 title={t('demographics.userDistribution.title')}
