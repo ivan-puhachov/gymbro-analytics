@@ -170,6 +170,7 @@
             requests_count: 'Requests',
             avg_requests: 'Avg Requests',
           },
+          insufficientData: 'Not enough distinct segment data to compare yet.',
           summary: '{{top}} outperformed {{bottom}} by {{percent}}% in the selected period.',
         },
         usageBySegment: {
@@ -476,6 +477,7 @@
             requests_count: 'Запросы',
             avg_requests: 'Среднее запросов',
           },
+          insufficientData: 'Недостаточно различающихся данных для сравнения сегментов.',
           summary: '{{top}} опережает {{bottom}} на {{percent}}% за выбранный период.',
         },
         usageBySegment: {
@@ -1252,6 +1254,7 @@ resources.et = {
           requests_count: 'P\u00e4ringud',
           avg_requests: 'Keskm. p\u00e4ringud',
         },
+        insufficientData: 'V\u00f5rdlemiseks pole veel piisavalt eristuvaid segmendiandmeid.',
         summary: '{{top}} edestas segmenti {{bottom}} valitud perioodil {{percent}}% v\u00f5rra.',
       },
       usageBySegment: {

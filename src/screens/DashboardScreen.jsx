@@ -286,6 +286,32 @@ const SegmentComparisonCard = ({ comparison }) => {
   );
 };
 
+const SegmentComparisonEmptyCard = ({ dimension }) => {
+  const { t } = useTranslation(['dashboard', 'common']);
+  const dimensionKey = String(dimension || '').trim().toLowerCase();
+
+  return (
+    <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-lg flex flex-col">
+      <div className="flex items-center justify-between mb-6">
+        <p className="text-sm font-bold uppercase tracking-wider text-gray-400 flex items-center gap-2">
+          <Users size={16} className="text-blue-400" />
+          {t(`demographics.segmentComparison.dimensions.${dimensionKey}`, {
+            defaultValue: dimensionKey || t('common:fallback.unknown'),
+          })}
+        </p>
+      </div>
+
+      <div className="flex min-h-[220px] flex-1 items-center justify-center rounded-xl border border-dashed border-gray-700 bg-gray-900/40 p-6 text-center">
+        <p className="max-w-sm text-sm font-medium leading-relaxed text-gray-400">
+          {t('demographics.segmentComparison.insufficientData')}
+        </p>
+      </div>
+    </div>
+  );
+};
+
+const SEGMENT_COMPARISON_DIMENSIONS = ['age', 'gender', 'weight', 'height'];
+
 const NAV_ITEMS = [
   { id: 'overview', labelKey: 'navigation.overview', icon: LayoutDashboard },
   { id: 'analytics', labelKey: 'navigation.analytics', icon: BarChart3 },
@@ -875,6 +901,20 @@ export default function DashboardScreen() {
 
   const selectedDemographicsMetric = demographicsMetricConfig[demographicsMetric];
   const segmentComparisons = Array.isArray(data.segmentComparison?.comparisons) ? data.segmentComparison.comparisons : [];
+  const segmentComparisonsByDimension = new Map(
+    segmentComparisons.map((comparison) => [String(comparison.dimension || '').trim().toLowerCase(), comparison]),
+  );
+  const expectedSegmentComparisonCards = SEGMENT_COMPARISON_DIMENSIONS.map((dimension) => ({
+    dimension,
+    comparison: segmentComparisonsByDimension.get(dimension),
+  }));
+  const extraSegmentComparisonCards = segmentComparisons
+    .filter((comparison) => !SEGMENT_COMPARISON_DIMENSIONS.includes(String(comparison.dimension || '').trim().toLowerCase()))
+    .map((comparison) => ({
+      dimension: String(comparison.dimension || '').trim().toLowerCase(),
+      comparison,
+    }));
+  const segmentComparisonCards = [...expectedSegmentComparisonCards, ...extraSegmentComparisonCards];
   const telemetryTotals = (data.hourly || []).reduce(
     (accumulator, item) => ({
       telemetryEvents: accumulator.telemetryEvents + getValidNumber(item.telemetry_events_count),
@@ -1480,15 +1520,15 @@ export default function DashboardScreen() {
                 <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-sm text-red-500">
                   {t('demographics.segmentComparison.error')}
                 </div>
-              ) : segmentComparisons.length > 0 ? (
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                  {segmentComparisons.map((comparison) => (
-                    <SegmentComparisonCard key={`${comparison.dimension}-${comparison.metric}`} comparison={comparison} />
-                  ))}
-                </div>
               ) : (
-                <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-sm text-gray-400">
-                  {t('demographics.segmentComparison.empty')}
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                  {segmentComparisonCards.map(({ dimension, comparison }) => (
+                    comparison ? (
+                      <SegmentComparisonCard key={`${comparison.dimension}-${comparison.metric}`} comparison={comparison} />
+                    ) : (
+                      <SegmentComparisonEmptyCard key={dimension} dimension={dimension} />
+                    )
+                  ))}
                 </div>
               )}
             </div>
