@@ -197,11 +197,28 @@ const SegmentComparisonCard = ({ comparison }) => {
   const metricKey = String(comparison.metric || '').trim();
   const topSegmentLabel = getSegmentValueLabel(dimensionKey, comparison.top_segment, t);
   const bottomSegmentLabel = getSegmentValueLabel(dimensionKey, comparison.bottom_segment, t);
-  const backendSummary = typeof comparison.summary === 'string' ? comparison.summary.trim() : '';
+  const metricLabel = t(`demographics.segmentComparison.metrics.${metricKey}`, {
+    defaultValue: metricKey || t('common:fallback.unknown'),
+  });
+  const isEqualComparison = comparison.is_equal === true;
+  const equalSegments = (comparison.all_segments || []).length > 0
+    ? comparison.all_segments
+    : [
+        { segment: comparison.top_segment, value: comparison.top_value },
+        { segment: comparison.bottom_segment, value: comparison.bottom_value },
+      ].filter((segment) => segment.segment);
+  const equalSegmentLabels = equalSegments
+    .map((segment) => getSegmentValueLabel(dimensionKey, segment.segment, t))
+    .filter(Boolean);
   const localizedSummary = t('demographics.segmentComparison.summary', {
     top: topSegmentLabel,
     bottom: bottomSegmentLabel,
     percent: formatMetricValue(comparison.relative_gap_percent, language),
+  });
+  const localizedEqualSummary = t('demographics.segmentComparison.equalSummary', {
+    segments: equalSegmentLabels.join(', ') || `${topSegmentLabel}, ${bottomSegmentLabel}`,
+    metric: metricLabel,
+    value: formatMetricValue(comparison.top_value, language),
   });
 
   return (
@@ -216,71 +233,92 @@ const SegmentComparisonCard = ({ comparison }) => {
           </p>
           <div className="bg-gray-900 border border-gray-700 px-3 py-1 rounded-full flex items-center gap-2 shadow-inner">
             <Activity size={14} className="text-purple-400" />
-            <span className="text-xs font-medium text-gray-300">
-              {t(`demographics.segmentComparison.metrics.${metricKey}`, {
-                defaultValue: metricKey || t('common:fallback.unknown'),
-              })}
-            </span>
+            <span className="text-xs font-medium text-gray-300">{metricLabel}</span>
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-4 items-center bg-gray-900/50 p-5 rounded-xl border border-gray-700/50">
-          <div className="flex flex-col gap-1 items-start text-left">
-            <div className="text-xs text-emerald-400 font-semibold uppercase tracking-wider bg-emerald-400/10 px-2 py-0.5 rounded flex items-center gap-1">
-              <ArrowUpRight size={14} />
-              {t('demographics.segmentComparison.labels.topSegment')}
+        {isEqualComparison ? (
+          <div className="bg-gray-900/50 p-5 rounded-xl border border-gray-700/50">
+            <div className="inline-flex rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-blue-200">
+              {t('demographics.segmentComparison.labels.equalSegments')}
             </div>
-            <div className="text-xl font-bold text-white mt-1 break-all truncate w-full" title={topSegmentLabel}>{topSegmentLabel}</div>
-            <div className="text-lg font-medium text-gray-300">{formatMetricValue(comparison.top_value, language)}</div>
-          </div>
-
-          <div className="flex flex-col items-center justify-center relative">
-            <div className="absolute top-1/2 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-gray-600 to-transparent -translate-y-1/2 -z-10"></div>
-            <div className="bg-gray-800 border border-gray-700 rounded-full w-10 h-10 flex items-center justify-center text-xs font-bold text-gray-400 shadow-md">
-              VS
+            <div className="mt-4 text-2xl font-bold text-white">
+              {formatMetricValue(comparison.top_value, language)}
             </div>
-            <div className="mt-4 flex flex-col items-center">
-              <span className="text-emerald-400 font-bold text-base flex items-center gap-0.5">
-                +{formatMetricValue(comparison.relative_gap_percent, language, { suffix: '%' })}
-              </span>
-              <span className="text-gray-500 text-xs font-medium bg-gray-800/80 px-2 py-0.5 rounded shadow mt-1">
-                {t('demographics.segmentComparison.labels.gap')}: {formatMetricValue(comparison.absolute_gap, language)}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-1 items-end text-right">
-            <div className="text-xs text-rose-400 font-semibold uppercase tracking-wider bg-rose-400/10 px-2 py-0.5 rounded flex items-center gap-1">
-              <ArrowDownRight size={14} />
-              {t('demographics.segmentComparison.labels.bottomSegment')}
-            </div>
-            <div className="text-xl font-bold text-white mt-1 break-all truncate w-full" title={bottomSegmentLabel}>{bottomSegmentLabel}</div>
-            <div className="text-lg font-medium text-gray-300">{formatMetricValue(comparison.bottom_value, language)}</div>
-          </div>
-        </div>
-        </div>
-
-        {comparison.all_segments && comparison.all_segments.length > 2 && (
-          <div className="mt-4 bg-gray-900/30 rounded-xl p-4 border border-gray-700/50">
-            <div className="text-[10px] font-bold text-gray-500 mb-3 uppercase tracking-wider">
-              {t("demographics.segmentComparison.labels.allSegments", { defaultValue: "All segments" })}
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {comparison.all_segments.map((seg, idx) => (
-                <div key={idx} className="flex items-center bg-gray-800/80 rounded-md overflow-hidden border border-gray-700/30 shadow-sm transition-colors hover:bg-gray-800">
+            <div className="mt-4 flex flex-wrap gap-2">
+              {equalSegments.map((seg, idx) => (
+                <div key={idx} className="flex items-center bg-gray-800/80 rounded-md overflow-hidden border border-gray-700/30 shadow-sm">
                   <span className="px-2.5 py-1 text-sm font-medium text-gray-300 bg-gray-800/50">{getSegmentValueLabel(dimensionKey, seg.segment, t)}</span>
                   <span className="px-2 py-1 text-xs font-semibold text-gray-400 border-l border-gray-700/50">
-                    {seg.value}
+                    {formatMetricValue(seg.value, language)}
                   </span>
                 </div>
               ))}
             </div>
           </div>
-        )}
+        ) : (
+          <>
+            <div className="grid grid-cols-3 gap-4 items-center bg-gray-900/50 p-5 rounded-xl border border-gray-700/50">
+              <div className="flex flex-col gap-1 items-start text-left">
+                <div className="text-xs text-emerald-400 font-semibold uppercase tracking-wider bg-emerald-400/10 px-2 py-0.5 rounded flex items-center gap-1">
+                  <ArrowUpRight size={14} />
+                  {t('demographics.segmentComparison.labels.topSegment')}
+                </div>
+                <div className="text-xl font-bold text-white mt-1 break-all truncate w-full" title={topSegmentLabel}>{topSegmentLabel}</div>
+                <div className="text-lg font-medium text-gray-300">{formatMetricValue(comparison.top_value, language)}</div>
+              </div>
 
-        <div className="mt-6 flex items-start gap-3 bg-blue-900/10 p-4 rounded-lg border border-blue-500/20">
+              <div className="flex flex-col items-center justify-center relative">
+                <div className="absolute top-1/2 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-gray-600 to-transparent -translate-y-1/2 -z-10"></div>
+                <div className="bg-gray-800 border border-gray-700 rounded-full w-10 h-10 flex items-center justify-center text-xs font-bold text-gray-400 shadow-md">
+                  VS
+                </div>
+                <div className="mt-4 flex flex-col items-center">
+                  <span className="text-emerald-400 font-bold text-base flex items-center gap-0.5">
+                    +{formatMetricValue(comparison.relative_gap_percent, language, { suffix: '%' })}
+                  </span>
+                  <span className="text-gray-500 text-xs font-medium bg-gray-800/80 px-2 py-0.5 rounded shadow mt-1">
+                    {t('demographics.segmentComparison.labels.gap')}: {formatMetricValue(comparison.absolute_gap, language)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1 items-end text-right">
+                <div className="text-xs text-rose-400 font-semibold uppercase tracking-wider bg-rose-400/10 px-2 py-0.5 rounded flex items-center gap-1">
+                  <ArrowDownRight size={14} />
+                  {t('demographics.segmentComparison.labels.bottomSegment')}
+                </div>
+                <div className="text-xl font-bold text-white mt-1 break-all truncate w-full" title={bottomSegmentLabel}>{bottomSegmentLabel}</div>
+                <div className="text-lg font-medium text-gray-300">{formatMetricValue(comparison.bottom_value, language)}</div>
+              </div>
+            </div>
+
+            {comparison.all_segments && comparison.all_segments.length > 2 && (
+              <div className="mt-4 bg-gray-900/30 rounded-xl p-4 border border-gray-700/50">
+                <div className="text-[10px] font-bold text-gray-500 mb-3 uppercase tracking-wider">
+                  {t("demographics.segmentComparison.labels.allSegments", { defaultValue: "All segments" })}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {comparison.all_segments.map((seg, idx) => (
+                    <div key={idx} className="flex items-center bg-gray-800/80 rounded-md overflow-hidden border border-gray-700/30 shadow-sm transition-colors hover:bg-gray-800">
+                      <span className="px-2.5 py-1 text-sm font-medium text-gray-300 bg-gray-800/50">{getSegmentValueLabel(dimensionKey, seg.segment, t)}</span>
+                      <span className="px-2 py-1 text-xs font-semibold text-gray-400 border-l border-gray-700/50">
+                        {formatMetricValue(seg.value, language)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      <div className="mt-6 flex items-start gap-3 bg-blue-900/10 p-4 rounded-lg border border-blue-500/20">
         <Zap size={20} className="text-amber-400 shrink-0 mt-0.5" />
-        <p className="text-sm text-blue-100/80 leading-relaxed font-medium">{localizedSummary}</p>
+        <p className="text-sm text-blue-100/80 leading-relaxed font-medium">
+          {isEqualComparison ? localizedEqualSummary : localizedSummary}
+        </p>
       </div>
     </div>
   );
@@ -301,16 +339,48 @@ const SegmentComparisonEmptyCard = ({ dimension }) => {
         </p>
       </div>
 
-      <div className="flex min-h-[220px] flex-1 items-center justify-center rounded-xl border border-dashed border-gray-700 bg-gray-900/40 p-6 text-center">
-        <p className="max-w-sm text-sm font-medium leading-relaxed text-gray-400">
-          {t('demographics.segmentComparison.insufficientData')}
-        </p>
+      <div className="flex min-h-[180px] flex-1 items-center rounded-xl border border-gray-700/50 bg-gray-900/40 p-5">
+        <div>
+          <div className="inline-flex rounded-full border border-gray-700 bg-gray-800 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-gray-400">
+            {t('demographics.segmentComparison.labels.noComparison')}
+          </div>
+          <p className="mt-3 max-w-sm text-sm font-medium leading-relaxed text-gray-400">
+            {t('demographics.segmentComparison.insufficientData')}
+          </p>
+        </div>
       </div>
     </div>
   );
 };
 
 const SEGMENT_COMPARISON_DIMENSIONS = ['age', 'gender', 'weight', 'height'];
+
+function buildEqualSegmentComparison(rows, { dimension, segmentKey, metricKey = 'avg_requests' }) {
+  const validRows = (rows || [])
+    .map((row) => ({
+      segment: String(row?.[segmentKey] ?? '').trim(),
+      value: Number(row?.[metricKey]),
+    }))
+    .filter((row) => row.segment && Number.isFinite(row.value) && row.value > 0);
+
+  if (validRows.length < 2) return null;
+
+  const firstValue = validRows[0].value;
+  if (!validRows.every((row) => row.value === firstValue)) return null;
+
+  return {
+    dimension,
+    metric: metricKey,
+    top_segment: validRows[0].segment,
+    bottom_segment: validRows[1].segment,
+    top_value: firstValue,
+    bottom_value: firstValue,
+    absolute_gap: 0,
+    relative_gap_percent: 0,
+    is_equal: true,
+    all_segments: validRows,
+  };
+}
 
 const NAV_ITEMS = [
   { id: 'overview', labelKey: 'navigation.overview', icon: LayoutDashboard },
@@ -901,12 +971,22 @@ export default function DashboardScreen() {
 
   const selectedDemographicsMetric = demographicsMetricConfig[demographicsMetric];
   const segmentComparisons = Array.isArray(data.segmentComparison?.comparisons) ? data.segmentComparison.comparisons : [];
+  const equalSegmentComparisonFallbacks = new Map(
+    [
+      buildEqualSegmentComparison(ageGroupData, { dimension: 'age', segmentKey: 'age_group' }),
+      buildEqualSegmentComparison(genderInsightsData, { dimension: 'gender', segmentKey: 'gender' }),
+      buildEqualSegmentComparison(weightInsightsData, { dimension: 'weight', segmentKey: 'bucket' }),
+      buildEqualSegmentComparison(heightInsightsData, { dimension: 'height', segmentKey: 'bucket' }),
+    ]
+      .filter(Boolean)
+      .map((comparison) => [comparison.dimension, comparison]),
+  );
   const segmentComparisonsByDimension = new Map(
     segmentComparisons.map((comparison) => [String(comparison.dimension || '').trim().toLowerCase(), comparison]),
   );
   const expectedSegmentComparisonCards = SEGMENT_COMPARISON_DIMENSIONS.map((dimension) => ({
     dimension,
-    comparison: segmentComparisonsByDimension.get(dimension),
+    comparison: segmentComparisonsByDimension.get(dimension) || equalSegmentComparisonFallbacks.get(dimension),
   }));
   const extraSegmentComparisonCards = segmentComparisons
     .filter((comparison) => !SEGMENT_COMPARISON_DIMENSIONS.includes(String(comparison.dimension || '').trim().toLowerCase()))

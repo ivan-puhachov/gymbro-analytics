@@ -159,6 +159,8 @@
             gap: 'Gap',
             differencePercent: 'Difference %',
               allSegments: 'All segments',
+            noComparison: 'No comparison',
+            equalSegments: 'Equal',
           },
           dimensions: {
             age: 'Age',
@@ -170,8 +172,9 @@
             requests_count: 'Requests',
             avg_requests: 'Avg Requests',
           },
-          insufficientData: 'Not enough distinct segment data to compare yet.',
+          insufficientData: 'Comparison was not built because this dimension needs at least two segments with non-zero activity.',
           summary: '{{top}} outperformed {{bottom}} by {{percent}}% in the selected period.',
+          equalSummary: '{{segments}} are equal by {{metric}}: {{value}}.',
         },
         usageBySegment: {
           title: 'Usage by Segment',
@@ -466,6 +469,8 @@
             gap: 'Разрыв',
             differencePercent: 'Разница %',
               allSegments: 'Все сегменты',
+            noComparison: 'Нет сравнения',
+            equalSegments: 'Равны между собой',
           },
           dimensions: {
             age: 'Возраст',
@@ -477,8 +482,9 @@
             requests_count: 'Запросы',
             avg_requests: 'Среднее запросов',
           },
-          insufficientData: 'Недостаточно различающихся данных для сравнения сегментов.',
+          insufficientData: 'Сравнение не построено: нужны минимум два сегмента с ненулевой активностью.',
           summary: '{{top}} опережает {{bottom}} на {{percent}}% за выбранный период.',
+          equalSummary: '{{segments}} равны между собой по метрике "{{metric}}": {{value}}.',
         },
         usageBySegment: {
           title: 'Использование по сегментам',
@@ -1243,6 +1249,8 @@ resources.et = {
           gap: 'Vahe',
           differencePercent: 'Erinevus %',
             allSegments: 'Kõik segmendid',
+          noComparison: 'V\u00f5rdlust pole',
+          equalSegments: 'V\u00f5rdsed',
         },
         dimensions: {
           age: 'Vanus',
@@ -1254,8 +1262,9 @@ resources.et = {
           requests_count: 'P\u00e4ringud',
           avg_requests: 'Keskm. p\u00e4ringud',
         },
-        insufficientData: 'V\u00f5rdlemiseks pole veel piisavalt eristuvaid segmendiandmeid.',
+        insufficientData: 'V\u00f5rdlust ei loodud: vaja on vähemalt kahte nullist suurema aktiivsusega segmenti.',
         summary: '{{top}} edestas segmenti {{bottom}} valitud perioodil {{percent}}% v\u00f5rra.',
+        equalSummary: '{{segments}} on m\u00f5\u00f5diku {{metric}} järgi võrdsed: {{value}}.',
       },
       usageBySegment: {
         title: 'Kasutus segmentide l\u00f5ikes',
