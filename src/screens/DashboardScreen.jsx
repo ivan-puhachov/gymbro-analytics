@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -30,8 +30,7 @@ import {
   Zap,
   Download,
 } from 'lucide-react';
-import { api, DATA_MODE_STORAGE_KEY, DEFAULT_DATA_MODE, normalizeDataMode } from '../api';
-import DataModeToggle from '../components/DataModeToggle';
+import { api } from '../api';
 import LanguageToggle from '../components/LanguageToggle';
 import { formatDate, formatDateTime, formatMetricValue, formatTimelineLabel } from '../utils/formatters';
 import {

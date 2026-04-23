@@ -3,12 +3,6 @@ if (!import.meta.env.VITE_API_URL) {
 }
 
 const BASE_URL = import.meta.env.VITE_API_URL;
-export const DATA_MODE_STORAGE_KEY = 'gymbro_analytics_data_mode';
-export const DEFAULT_DATA_MODE = 'production';
-
-export function normalizeDataMode(mode) {
-  return String(mode || DEFAULT_DATA_MODE).trim().toLowerCase() === 'test' ? 'test' : DEFAULT_DATA_MODE;
-}
 
 function createApiError(message, status, details = null) {
   const error = new Error(message);
@@ -17,10 +11,8 @@ function createApiError(message, status, details = null) {
   return error;
 }
 
-function buildHeaders(token, dataMode = DEFAULT_DATA_MODE, includeAdmins = false) {
-  const headers = {
-    'X-Data-Mode': normalizeDataMode(dataMode),
-  };
+function buildHeaders(token, includeAdmins = false) {
+  const headers = {};
 
   if (includeAdmins) {
     headers['X-Include-Admins'] = 'true';
@@ -55,15 +47,15 @@ export const api = {
     return res.json();
   },
 
-  async getReport(endpoint, token, dataMode = DEFAULT_DATA_MODE, includeAdmins = false) {
+  async getReport(endpoint, token, includeAdmins = false) {
     const res = await fetch(BASE_URL + '/reports/' + endpoint, {
-      headers: buildHeaders(token, dataMode, includeAdmins),
+      headers: buildHeaders(token, includeAdmins),
     });
     if (!res.ok) throw createApiError(`Failed to fetch ${endpoint}`, res.status, endpoint);
     return res.json();
   },
 
-  async getAnalytics(endpoint, token, queryParams = {}, dataMode = DEFAULT_DATA_MODE, includeAdmins = false) {
+  async getAnalytics(endpoint, token, queryParams = {}, includeAdmins = false) {
     const url = new URL(BASE_URL + '/analytics/' + endpoint);
     Object.keys(queryParams).forEach(key => {
       if (queryParams[key] !== undefined && queryParams[key] !== null) {
@@ -72,13 +64,13 @@ export const api = {
     });
     
     const res = await fetch(url.toString(), {
-      headers: buildHeaders(token, dataMode, includeAdmins),
+      headers: buildHeaders(token, includeAdmins),
     });
     if (!res.ok) throw createApiError(`Failed to fetch analytics: ${endpoint}`, res.status, endpoint);
     return res.json();
   },
 
-  async downloadAnalyticsReport(token, queryParams = {}, dataMode = DEFAULT_DATA_MODE, includeAdmins = false) {
+  async downloadAnalyticsReport(token, queryParams = {}, includeAdmins = false) {
     const url = new URL(BASE_URL + '/analytics/export-report');
     Object.keys(queryParams).forEach(key => {
       if (queryParams[key] !== undefined && queryParams[key] !== null) {
@@ -87,7 +79,7 @@ export const api = {
     });
     
     const res = await fetch(url.toString(), {
-      headers: buildHeaders(token, dataMode, includeAdmins),
+      headers: buildHeaders(token, includeAdmins),
     });
     
     if (!res.ok) throw createApiError('Failed to fetch analytics report', res.status);
